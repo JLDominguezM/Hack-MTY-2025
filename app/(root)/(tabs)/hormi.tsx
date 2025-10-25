@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Leaf,
 } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Image,
@@ -14,7 +15,6 @@ import {
   View,
   TouchableOpacity,
   Modal,
-  SafeAreaView,
   FlatList,
 } from "react-native";
 
