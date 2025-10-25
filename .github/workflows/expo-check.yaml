@@ -1,0 +1,35 @@
+name: Expo Health Check
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Type check (si usas TypeScript)
+        run: npx tsc --noEmit
+
+      - name: ESLint check (opcional)
+        run: npx eslint . --ext .js,.ts,.tsx || true
+
+      - name: Expo prebuild check
+        run: npx expo prebuild --no-install
+
+      - name: Build production bundle (simula build final)
+        run: npx expo export
