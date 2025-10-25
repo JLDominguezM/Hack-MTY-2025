@@ -7,6 +7,8 @@ export default function Layout() {
       <Stack.Screen name="home" options={{ headerShown: false }} />
       <Stack.Screen name="hormi" options={{ headerShown: false }} />
       <Stack.Screen name="payments" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      <Stack.Screen name="payServices" options={{ headerShown: false }} />
     </Stack>
   );
 }
