@@ -127,13 +127,9 @@ const SignUp = () => {
 
         await setActive({ session: signUpAttempt.createdSessionId });
 
-        // Intentar diferentes rutas de redirección
-        try {
-          router.replace("/(root)/(tabs)/home");
-        } catch (routeError) {
-          console.log("Error con ruta específica, intentando ruta simple...");
-          router.replace("/");
-        }
+        // Redirigir al home usando la ruta directa
+        console.log("Redirigiendo a home...");
+        router.replace("/(root)/(tabs)/home");
       } else {
         // Manejar diferentes tipos de estados
         if (signUpAttempt.status === "missing_requirements") {
