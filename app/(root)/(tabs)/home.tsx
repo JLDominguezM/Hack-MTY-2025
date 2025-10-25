@@ -10,6 +10,7 @@ import {
 import { router } from "expo-router";
 import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
+import { useUser, useAuth } from "@clerk/clerk-expo";
 
 const { height } = Dimensions.get("window");
 
@@ -34,18 +35,35 @@ const Home = () => {
   const platformLabel =
     Platform.OS === "web" ? "Web" : Platform.OS === "ios" ? "Móvil" : "";
 
+  const { user } = useUser();
+
+  const getDisplayName = () => {
+    if (user?.firstName) {
+      return user.firstName;
+    }
+    if (user?.fullName) {
+      return user.fullName;
+    }
+    // Fallback to first part of email
+    if (user?.emailAddresses?.[0]?.emailAddress) {
+      const email = user.emailAddresses[0].emailAddress;
+      return email.split("@")[0];
+    }
+    return "Usuario";
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header rojo */}
-      <View className="bg-[#EC0000] px-6 pt-20 pb-4">
+      <View className="bg-BanorteRed px-6 pt-20 pb-4">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-3 flex-1">
             <View className="bg-white rounded-full p-2">
-              <Text className="text-[#EC0000] text-lg">👤</Text>
+              <Text className="text-BanorteRed text-lg">👤</Text>
             </View>
             <View className="flex-1">
               <Text className="text-white text-lg font-bold mb-1">
-                Hola Daniela
+                Hola {getDisplayName()}!
               </Text>
               <Text className="text-xs text-white/90 leading-tight">
                 Último ingreso{"\n"}
@@ -75,12 +93,15 @@ const Home = () => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-col items-center gap-2 flex-1">
+          <TouchableOpacity
+            className="flex-col items-center gap-2 flex-1"
+            onPress={() => router.push("/(root)/(tabs)/consumption")}
+          >
             <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-gray-400 text-lg">📈</Text>
+              <Text className="text-white text-lg">📊</Text>
             </View>
-            <Text className="text-[9px] text-gray-400 text-center leading-tight">
-              Mis{"\n"}inversiones
+            <Text className="text-[9px] text-white text-center leading-tight">
+              Mi{"\n"}Consumo
             </Text>
           </TouchableOpacity>
 
@@ -89,18 +110,18 @@ const Home = () => {
             onPress={() => router.push("/(root)/(tabs)/payServices")}
           >
             <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-gray-400 text-lg">🧾</Text>
+              <Text className="text-BanorteGray text-lg">🧾</Text>
             </View>
-            <Text className="text-[9px] text-gray-400 text-center leading-tight">
+            <Text className="text-[9px] text-white text-center leading-tight">
               Pago de{"\n"}servicios
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="flex-col items-center gap-2 flex-1">
             <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-gray-400 text-lg">↔️</Text>
+              <Text className="text-BanorteGray text-lg">↔️</Text>
             </View>
-            <Text className="text-[9px] text-gray-400 text-center leading-tight">
+            <Text className="text-[9px] text-BanorteGray text-center leading-tight">
               Transferir
             </Text>
           </TouchableOpacity>
@@ -109,14 +130,14 @@ const Home = () => {
             className="flex-col items-center gap-2 flex-1"
             onPress={() => router.push("/(root)/(tabs)/hormi")}
           >
-            <View className="w-8 h-8 bg-[#EC0000] rounded-full items-center justify-center">
+            <View className="w-8 h-8 bg-BanorteRed rounded-full items-center justify-center">
               <View className="w-5 h-6">
                 <View className="w-2 h-2.5 bg-white rounded-full mx-auto" />
                 <View className="w-1.5 h-1.5 bg-white rounded-full mx-auto mt-0.5" />
                 <View className="w-3 h-3 bg-white rounded-full mx-auto mt-0.5" />
               </View>
             </View>
-            <Text className="text-[9px] text-gray-400 text-center leading-tight">
+            <Text className="text-[9px] text-BanorteGray text-center leading-tight">
               Hormi
             </Text>
           </TouchableOpacity>
@@ -130,18 +151,18 @@ const Home = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Banner promocional */}
-        <View className="bg-gradient-to-r from-[#f15a29] to-[#e94e1b] rounded-xl p-4 mt-4 mb-4 shadow-lg">
+        <View className="bg-gradient-to-r from-BanorteRed to-[#e94e1b] rounded-xl p-4 mt-4 mb-4 shadow-lg">
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
-              <Text className="text-black text-base font-bold mb-1">
-                ¡Hola Daniela!
+              <Text className="text-white text-base font-bold mb-1">
+                Hola {user?.firstName || user?.fullName || "Usuario"}!
               </Text>
-              <Text className="text-black text-sm leading-relaxed">
+              <Text className="text-white text-sm leading-relaxed">
                 Conoce las promociones{"\n"}especiales que tenemos para ti
               </Text>
             </View>
             <TouchableOpacity className="bg-white px-4 py-2.5 rounded-lg shadow-sm">
-              <Text className="text-[#f15a29] text-sm font-semibold">
+              <Text className="text-BanorteRed text-sm font-semibold">
                 Ver ofertas
               </Text>
             </TouchableOpacity>
@@ -175,7 +196,7 @@ const Home = () => {
                 <Text className="text-gray-900 font-bold text-base">
                   $ 1702.02 MN
                 </Text>
-                <Text className="text-gray-400 text-xl">›</Text>
+                <Text className="text-BanorteGray text-xl">›</Text>
               </View>
             </View>
           </View>
@@ -208,17 +229,17 @@ const Home = () => {
           </View>
 
           {/* Contrata aquí */}
-          <View className="bg-gradient-to-r from-[#f15a29] to-[#e94e1b] p-4 rounded-xl shadow-sm">
+          <View className="bg-gradient-to-r from-BanorteRed to-[#e94e1b] p-4 rounded-xl shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
                 <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
                   <Text className="text-white text-xl">📃</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-black text-base font-semibold mb-1">
+                  <Text className="text-white text-base font-semibold mb-1">
                     Contrata aquí
                   </Text>
-                  <Text className="text-sm text-black/90">
+                  <Text className="text-sm text-white/90">
                     Tarjeta de Crédito, Pagarés y más
                   </Text>
                 </View>
@@ -235,7 +256,7 @@ const Home = () => {
               onPress={() => router.push("/(root)/(tabs)/hormi")}
               className="items-center"
             >
-              <View className="w-16 h-16 bg-[#EC0000] rounded-full items-center justify-center shadow-lg mb-3">
+              <View className="w-16 h-16 bg-BanorteRed rounded-full items-center justify-center shadow-lg mb-3">
                 <View className="w-10 h-12">
                   <View className="w-7 h-8 bg-white rounded-full mx-auto" />
                   <View className="w-5 h-4 bg-white rounded-full mx-auto mt-1" />

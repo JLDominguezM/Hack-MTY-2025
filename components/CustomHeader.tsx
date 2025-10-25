@@ -22,8 +22,8 @@ export default function CustomHeader({
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#EC0000" />
-      <View className="bg-[#EC0000] flex-row items-center justify-between px-6 py-8 pt-20">
+      <StatusBar barStyle="light-content" backgroundColor="#EB0029" />
+      <View className="bg-BanorteRed flex-row items-center justify-between px-6 py-8 pt-20">
         {showBackButton ? (
           <Pressable onPress={handleBackPress} className="p-2 -ml-2">
             <ArrowLeft color="white" size={24} />

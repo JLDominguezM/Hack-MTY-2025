@@ -37,9 +37,16 @@ const SignUp = () => {
     if (!isLoaded) return;
 
     try {
+      // Split the name into first and last name
+      const nameParts = form.name.trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
       await signUp.create({
         emailAddress: form.email,
         password: form.password,
+        firstName: firstName,
+        lastName: lastName,
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
@@ -179,20 +186,20 @@ const SignUp = () => {
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white justify-center px-6">
         <View className="mb-8 mt-16">
-          <Text className="text-3xl font-bold text-red-600 text-center mb-2">
+          <Text className="text-3xl font-bold text-BanorteRed text-center mb-2">
             Crear Cuenta
           </Text>
-          <Text className="text-lg text-gray-500 text-center">
+          <Text className="text-lg text-BanorteGray text-center">
             Únete a nosotros hoy
           </Text>
         </View>
 
         <View className="mb-4">
-          <Text className="text-lg font-semibold mb-2 text-red-600">
+          <Text className="text-lg font-semibold mb-2 text-BanorteRed">
             Nombre
           </Text>
           <TextInput
-            className="w-full p-4 border-2 border-red-200 rounded-xl text-gray-800 focus:border-red-500"
+            className="w-full p-4 border-2 border-red-200 rounded-xl text-BanorteGray focus:border-BanorteRed"
             placeholder="Ingresa tu nombre"
             placeholderTextColor="#9CA3AF"
             value={form.name}
@@ -201,9 +208,11 @@ const SignUp = () => {
         </View>
 
         <View className="mb-4">
-          <Text className="text-lg font-semibold mb-2 text-red-600">Email</Text>
+          <Text className="text-lg font-semibold mb-2 text-BanorteRed">
+            Email
+          </Text>
           <TextInput
-            className="w-full p-4 border-2 border-red-200 rounded-xl text-gray-800 focus:border-red-500"
+            className="w-full p-4 border-2 border-red-200 rounded-xl text-BanorteGray focus:border-BanorteRed"
             placeholder="Ingresa tu email"
             placeholderTextColor="#9CA3AF"
             value={form.email}
@@ -214,11 +223,11 @@ const SignUp = () => {
         </View>
 
         <View className="mb-6">
-          <Text className="text-lg font-semibold mb-2 text-red-600">
+          <Text className="text-lg font-semibold mb-2 text-BanorteRed">
             Contraseña
           </Text>
           <TextInput
-            className="w-full p-4 border-2 border-red-200 rounded-xl text-gray-800 focus:border-red-500"
+            className="w-full p-4 border-2 border-red-200 rounded-xl text-BanorteGray focus:border-BanorteRed"
             placeholder="Ingresa tu contraseña"
             placeholderTextColor="#9CA3AF"
             value={form.password}
@@ -229,7 +238,7 @@ const SignUp = () => {
 
         <TouchableOpacity
           onPress={onSignUpPress}
-          className="w-full bg-red-600 p-4 rounded-xl mb-6"
+          className="w-full bg-BanorteRed p-4 rounded-xl mb-6"
         >
           <Text className="text-white text-lg font-bold text-center">
             Crear Cuenta
@@ -237,15 +246,15 @@ const SignUp = () => {
         </TouchableOpacity>
 
         <View className="flex-row justify-center">
-          <Text className="text-gray-500">¿Ya tienes cuenta? </Text>
+          <Text className="text-BanorteGray">¿Ya tienes cuenta? </Text>
           <Link href="/sign-in">
-            <Text className="text-red-600 font-semibold">Inicia Sesión</Text>
+            <Text className="text-BanorteRed font-semibold">Inicia Sesión</Text>
           </Link>
         </View>
 
         <ReactNativeModal isVisible={verification.state === "pending"}>
           <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-            <Text className="text-2xl font-bold mb-2 text-red-600">
+            <Text className="text-2xl font-bold mb-2 text-BanorteRed">
               Verificación
             </Text>
             <Text className="text-gray-600 mb-5">
@@ -253,11 +262,11 @@ const SignUp = () => {
             </Text>
 
             <View className="mb-4">
-              <Text className="text-lg font-semibold mb-2 text-red-600">
+              <Text className="text-lg font-semibold mb-2 text-BanorteRed">
                 Código
               </Text>
               <TextInput
-                className="w-full p-4 border-2 border-red-200 rounded-xl text-gray-800 focus:border-red-500"
+                className="w-full p-4 border-2 border-red-200 rounded-xl text-BanorteGray focus:border-BanorteRed"
                 placeholder="12345"
                 placeholderTextColor="#9CA3AF"
                 value={verification.code}
@@ -270,7 +279,7 @@ const SignUp = () => {
             </View>
 
             {verification.error && (
-              <Text className="text-red-500 text-sm mt-1">
+              <Text className="text-BanorteRed text-sm mt-1">
                 {verification.error}
               </Text>
             )}
@@ -279,7 +288,7 @@ const SignUp = () => {
               onPress={onVerifyPress}
               disabled={verification.isVerifying}
               className={`w-full p-4 rounded-xl mt-5 ${
-                verification.isVerifying ? "bg-green-300" : "bg-green-500"
+                verification.isVerifying ? "bg-green-300" : "bg-Sucess"
               }`}
             >
               <Text className="text-white text-lg font-bold text-center">
@@ -294,7 +303,7 @@ const SignUp = () => {
               disabled={verification.isVerifying}
               className="w-full p-3 mt-3"
             >
-              <Text className="text-red-600 text-center font-semibold">
+              <Text className="text-BanorteRed text-center font-semibold">
                 ¿No recibiste el código? Reenviar
               </Text>
             </TouchableOpacity>

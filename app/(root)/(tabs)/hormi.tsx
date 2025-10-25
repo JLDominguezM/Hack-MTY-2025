@@ -21,13 +21,6 @@ import {
 import CustomHeader from "@/components/CustomHeader";
 import { images } from "@/constants";
 
-const navigationItems = [
-  { icon: Wallet, label: "Mis cuentas", active: false },
-  { icon: TrendingUp, label: "Mis inversiones", active: false },
-  { icon: Receipt, label: "Pago de servicios", active: false },
-  { icon: ArrowLeftRight, label: "Transferir", active: false },
-];
-
 const benefits = [
   {
     company: "Starbucks",
@@ -137,8 +130,8 @@ export default function HormiView() {
             className="items-center gap-3"
             onPress={() => setShowBenefits(true)}
           >
-            <ChevronDown size={48} color="#EC0000" />
-            <Text className="text-gray-600 text-base">Ver beneficios</Text>
+            <ChevronDown size={48} color="#EB0029" />
+            <Text className="text-BanorteGray text-base">Ver beneficios</Text>
           </TouchableOpacity>
         </View>
 
@@ -153,16 +146,16 @@ export default function HormiView() {
             <View className="bg-white p-6 rounded-2xl min-h-[200px] w-full max-w-sm">
               <View className="flex-row items-center mb-4">
                 <Text className="text-2xl">🐜</Text>
-                <Text className="text-lg font-bold text-[#EC0000] ml-2">
+                <Text className="text-lg font-bold text-BanorteRed ml-2">
                   Consejo de Hormi
                 </Text>
               </View>
 
               <View className="min-h-[60px] justify-center items-center mb-4">
                 {isLoadingAdvice ? (
-                  <ActivityIndicator size="large" color="#EC0000" />
+                  <ActivityIndicator size="large" color="#EB0029" />
                 ) : (
-                  <Text className="text-gray-700 leading-6 text-center">
+                  <Text className="text-BanorteGray leading-6 text-center">
                     {currentAdvice}
                   </Text>
                 )}
@@ -170,7 +163,7 @@ export default function HormiView() {
 
               <TouchableOpacity
                 onPress={() => setShowAdvice(false)}
-                className={`bg-[#EC0000] py-3 rounded-lg ${
+                className={`bg-BanorteRed py-3 rounded-lg ${
                   isLoadingAdvice ? "opacity-70" : ""
                 }`}
                 disabled={isLoadingAdvice}
@@ -201,10 +194,10 @@ export default function HormiView() {
                     onPress={() => setShowBenefits(false)}
                     className="p-2"
                   >
-                    <Text className="text-2xl text-gray-500">×</Text>
+                    <Text className="text-2xl text-BanorteGray">×</Text>
                   </TouchableOpacity>
                 </View>
-                <Text className="text-center text-gray-600">
+                <Text className="text-center text-BanorteGray">
                   Canjea tus puntos por increíbles beneficios
                 </Text>
               </View>
@@ -230,24 +223,7 @@ export default function HormiView() {
 
 function SubNavigation() {
   return (
-    <View className="bg-gray-100 border-b border-gray-300 px-2 py-3">
-      <View className="flex-row items-center justify-around">
-        {navigationItems.map((item, index) => {
-          const Icon = item.icon;
-          return (
-            <TouchableOpacity
-              key={index}
-              className="items-center gap-1 px-3 py-1 w-1/4"
-            >
-              <Icon size={24} color="#374151" />
-              <Text className="text-xs text-center text-gray-700">
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
+    <View className="bg-gray-100 border-b border-gray-300 px-2 py-3"></View>
   );
 }
 
@@ -295,7 +271,7 @@ function BenefitCard({
               <Text className="text-gray-900 font-semibold text-base">
                 {benefit.company}
               </Text>
-              <Text className="text-sm text-gray-600">
+              <Text className="text-sm text-BanorteGray">
                 {benefit.description}
               </Text>
             </View>
