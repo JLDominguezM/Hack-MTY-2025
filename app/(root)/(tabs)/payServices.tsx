@@ -3,6 +3,7 @@ import { ArrowLeft, MoreVertical } from "lucide-react";
 import { ServiceCard } from "@/components/ServiceCart";
 import { PaymentSummary } from "@/components/PaymentSummary";
 import { View } from "@/types/type";
+import CustomHeader from "@/components/CustomHeader";
 
 export interface Service {
   id: string;
@@ -100,22 +101,7 @@ export default function PaymentServicesView({
   return (
     <div className="min-h-screen bg-gray-50 max-w-[430px] mx-auto">
       {/* Header */}
-      <div className="bg-[#EC0000] text-white sticky top-0 z-10 shadow-md">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => onNavigate("home")}
-              className="active:bg-white/10 p-2 rounded-lg transition-colors -ml-2"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h2 className="text-white">Pago de Servicios</h2>
-            <button className="active:bg-white/10 p-2 rounded-lg transition-colors -mr-2">
-              <MoreVertical className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <CustomHeader title="Pago de Servicios" showBackButton={true} />
 
       <main className="px-4 py-4 pb-28">
         <div className="flex items-center justify-between mb-4">
