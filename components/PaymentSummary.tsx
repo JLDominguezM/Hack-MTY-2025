@@ -4,11 +4,13 @@ import { View, Text, Pressable, Platform } from "react-native";
 interface PaymentSummaryProps {
   selectedCount: number;
   totalAmount: number;
+  onPayPress: () => void;
 }
 
 export function PaymentSummary({
   selectedCount,
   totalAmount,
+  onPayPress
 }: PaymentSummaryProps) {
   return (
     <View
@@ -37,6 +39,7 @@ export function PaymentSummary({
 
         <Pressable
           disabled={selectedCount === 0}
+          onPress={onPayPress}
           className={`w-full py-5 rounded-2xl items-center justify-center flex-row shadow-lg ${
             selectedCount === 0
               ? "bg-gray-300"

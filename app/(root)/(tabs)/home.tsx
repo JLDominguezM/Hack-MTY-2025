@@ -69,6 +69,8 @@ const Home = () => {
 
   const { user } = useUser();
 
+  const accountBalance = useBalanceStore((state) => state.accountBalance);
+
   const getDisplayName = () => {
     if (user?.firstName) {
       return user.firstName;
@@ -226,7 +228,7 @@ const Home = () => {
               </View>
               <View className="flex-row items-center gap-2">
                 <Text className="text-gray-900 font-bold text-base">
-                  $ 1702.02 MN
+                  $ {accountBalance.toFixed(2)} MN
                 </Text>
                 <Text className="text-BanorteGray text-xl">›</Text>
               </View>

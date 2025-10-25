@@ -59,11 +59,15 @@ const mockServices: Service[] = [
   },
 ];
 
+
 interface PaymentServicesViewProps {
   onNavigate?: (view: string) => void;
 }
 
 function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
+  const router = useRouter();
+  const accountBalance = useBalanceStore((state) => state.accountBalance);
+  const decreaseBalance = useBalanceStore((state) => state.decreaseBalance);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
   const handleToggleService = (serviceId: string) => {
@@ -81,6 +85,47 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
       setSelectedServices(mockServices.map((s) => s.id));
     }
   };
+
+  const handlePayment = () => {
+    
+    if (selectedTotal <= 0) {
+      Alert.alert(
+        "Error",
+        "Debes seleccionar al menos un servicio para pagar."
+      );
+      return;
+    }
+
+    
+    if (selectedTotal > accountBalance) {
+      Alert.alert(
+        "Saldo Insuficiente",
+        `No tienes suficiente saldo ($${accountBalance.toFixed(2)} MN) para cubrir el total de $${selectedTotal.toFixed(2)} MN.`
+      );
+      return; 
+    }
+    
+
+    console.log(`Simulating payment of $${selectedTotal.toFixed(2)} MN...`);
+    
+
+    
+    decreaseBalance(selectedTotal);
+
+    Alert.alert(
+      "Pago Exitoso",
+      `Se han pagado $${selectedTotal.toFixed(2)} MN.`
+    );
+
+    
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/home"); 
+    }
+  };
+
+    
 
   const selectedTotal = mockServices
     .filter((service) => selectedServices.includes(service.id))
@@ -128,6 +173,7 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
         <PaymentSummary
           selectedCount={selectedServices.length}
           totalAmount={selectedTotal}
+          onPayPress={handlePayment}
         />
       </View>
     </View>
