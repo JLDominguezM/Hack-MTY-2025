@@ -10,12 +10,10 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded] = useFonts({
-    "FunnelSans-Regular": require("../assets/fonts/FunnelSans-Regular.ttf"),
-    "FunnelSans-Bold": require("../assets/fonts/FunnelSans-Bold.ttf"),
-    "FunnelSans-Light": require("../assets/fonts/FunnelSans-Light.ttf"),
-    "FunnelSans-Medium": require("../assets/fonts/FunnelSans-Medium.ttf"),
-    "FunnelSans-SemiBold": require("../assets/fonts/FunnelSans-SemiBold.ttf"),
-    "FunnelSans-ExtraBold": require("../assets/fonts/FunnelSans-ExtraBold.ttf"),
+    Gotham: require("../assets/fonts/Gotham-Book.otf"),
+    "Gotham-Bold": require("../assets/fonts/Gotham-Bold.otf"),
+    "Gotham-Medium": require("../assets/fonts/Gotham-Medium.otf"),
+    "Gotham-Light": require("../assets/fonts/Gotham-Light.otf"),
   });
 
   useEffect(() => {
@@ -28,8 +26,16 @@ export default function RootLayout() {
     return null;
   }
 
+  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
+  if (!publishableKey) {
+    throw new Error(
+      "Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env"
+    );
+  }
+
   return (
-    <ClerkProvider tokenCache={tokenCache}>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />

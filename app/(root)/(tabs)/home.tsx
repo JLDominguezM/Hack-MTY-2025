@@ -1,0 +1,321 @@
+import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+} from "react-native";
+import * as Location from "expo-location";
+import { router } from "expo-router";
+import { SignOutButton } from "@/components/SignOutButton";
+const { Platform } = require("react-native");
+import { useUser, useAuth } from "@clerk/clerk-expo";
+import { useLocationStore } from "@/store";
+
+const { height } = Dimensions.get("window");
+
+const Home = () => {
+  const [now, setNow] = React.useState<Date>(new Date());
+  React.useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000); // actualiza cada minuto
+    return () => clearInterval(t);
+  }, []);
+
+  const dd = String(now.getDate()).padStart(2, "0");
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const yyyy = now.getFullYear();
+  let hh = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const ampm = hh >= 12 ? "p.m." : "a.m.";
+  hh = hh % 12;
+  if (hh === 0) hh = 12;
+  const hourStr = String(hh).padStart(2, "0");
+
+  const formatted = `${dd}-${mm}-${yyyy} ${hourStr}:${minutes} ${ampm}`;
+  const platformLabel =
+    Platform.OS === "web" ? "Web" : Platform.OS === "ios" ? "Móvil" : "";
+
+  const { setUserLocation, userLatitude, userLongitude } = useLocationStore();
+  const [hasPermissions, setHasPermission] = useState<boolean>(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          setHasPermission(false);
+          return;
+        }
+
+        setHasPermission(true);
+        let location = await Location.getCurrentPositionAsync({});
+
+        const address = await Location.reverseGeocodeAsync({
+          latitude: location.coords?.latitude!,
+          longitude: location.coords?.longitude!,
+        });
+
+        setUserLocation({
+          latitude: location.coords?.latitude,
+          longitude: location.coords?.longitude,
+        });
+      } catch (error) {
+        console.error("Error getting location:", error);
+      }
+    })();
+  }, []);
+
+  const { user } = useUser();
+
+  const getDisplayName = () => {
+    if (user?.firstName) {
+      return user.firstName;
+    }
+    if (user?.fullName) {
+      return user.fullName;
+    }
+    // Fallback to first part of email
+    if (user?.emailAddresses?.[0]?.emailAddress) {
+      const email = user.emailAddresses[0].emailAddress;
+      return email.split("@")[0];
+    }
+    return "Usuario";
+  };
+
+  return (
+    <View className="flex-1 bg-gray-50">
+      {/* Header rojo */}
+      <View className="bg-BanorteRed px-6 pt-20 pb-4">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-3 flex-1">
+            <View className="bg-white rounded-full p-2">
+              <Text className="text-BanorteRed text-lg">👤</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-white text-lg font-bold mb-1">
+                Hola {getDisplayName()}!
+              </Text>
+              <Text className="text-xs text-white/90 leading-tight">
+                Último ingreso{"\n"}
+                {formatted} {platformLabel}
+              </Text>
+            </View>
+          </View>
+          <View className="flex-row items-center gap-3">
+            <TouchableOpacity className="relative">
+              <Text className="text-white text-xl">🔔</Text>
+              <View className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white" />
+            </TouchableOpacity>
+            <SignOutButton />
+          </View>
+        </View>
+      </View>
+
+      {/* Navegación */}
+      <View className="bg-[#2a2a2a] px-3 py-4">
+        <View className="flex-row items-center justify-between">
+          <TouchableOpacity className="flex-col items-center gap-2 flex-1">
+            <View className="w-8 h-8 bg-white rounded-full items-center justify-center">
+              <Text className="text-[#2a2a2a] text-sm">💰</Text>
+            </View>
+            <Text className="text-[9px] text-white text-center leading-tight">
+              Mis{"\n"}cuentas
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-col items-center gap-2 flex-1"
+            onPress={() => router.push("/(root)/(tabs)/consumption")}
+          >
+            <View className="w-8 h-8 items-center justify-center">
+              <Text className="text-white text-lg">📊</Text>
+            </View>
+            <Text className="text-[9px] text-white text-center leading-tight">
+              Mi{"\n"}Consumo
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-col items-center gap-2 flex-1"
+            onPress={() => router.push("/(root)/(tabs)/payServices")}
+          >
+            <View className="w-8 h-8 items-center justify-center">
+              <Text className="text-BanorteGray text-lg">🧾</Text>
+            </View>
+            <Text className="text-[9px] text-white text-center leading-tight">
+              Pago de{"\n"}servicios
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-col items-center gap-2 flex-1">
+            <View className="w-8 h-8 items-center justify-center">
+              <Text className="text-BanorteGray text-lg">↔️</Text>
+            </View>
+            <Text className="text-[9px] text-BanorteGray text-center leading-tight">
+              Transferir
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-col items-center gap-2 flex-1"
+            onPress={() => router.push("/(root)/(tabs)/hormi")}
+          >
+            <View className="w-8 h-8 bg-BanorteRed rounded-full items-center justify-center">
+              <View className="w-5 h-6">
+                <View className="w-2 h-2.5 bg-white rounded-full mx-auto" />
+                <View className="w-1.5 h-1.5 bg-white rounded-full mx-auto mt-0.5" />
+                <View className="w-3 h-3 bg-white rounded-full mx-auto mt-0.5" />
+              </View>
+            </View>
+            <Text className="text-[9px] text-BanorteGray text-center leading-tight">
+              Hormi
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Contenido principal con ScrollView */}
+      <ScrollView
+        className="flex-1 px-4"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        {/* Banner promocional */}
+        <View className="bg-gradient-to-r from-BanorteRed to-[#e94e1b] rounded-xl p-4 mt-4 mb-4 shadow-lg">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1 pr-4">
+              <Text className="text-white text-base font-bold mb-1">
+                Hola {user?.firstName || user?.fullName || "Usuario"}!
+              </Text>
+              <Text className="text-white text-sm leading-relaxed">
+                Conoce las promociones{"\n"}especiales que tenemos para ti
+              </Text>
+            </View>
+            <TouchableOpacity className="bg-white px-4 py-2.5 rounded-lg shadow-sm">
+              <Text className="text-BanorteRed text-sm font-semibold">
+                Ver ofertas
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Mis cuentas */}
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-gray-900 text-lg font-bold">Mis cuentas</Text>
+            <TouchableOpacity className="p-2">
+              <Text className="text-gray-600 text-lg">⚙️</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Cuenta Nómina */}
+          <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-3">
+                <View className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center">
+                  <Text className="text-gray-600 text-xl">💳</Text>
+                </View>
+                <View>
+                  <Text className="text-gray-900 text-base font-semibold mb-1">
+                    Nómina Banorte 2
+                  </Text>
+                  <Text className="text-sm text-gray-500">****8999</Text>
+                </View>
+              </View>
+              <View className="flex-row items-center gap-2">
+                <Text className="text-gray-900 font-bold text-base">
+                  $ 1702.02 MN
+                </Text>
+                <Text className="text-BanorteGray text-xl">›</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Servicios rápidos */}
+        <View className="mb-4">
+          <Text className="text-gray-900 text-lg font-bold mb-3">
+            Servicios
+          </Text>
+
+          {/* Beneficios de mis tarjetas */}
+          <View className="bg-gradient-to-r from-[#f9c74f] to-[#f8b739] p-4 rounded-xl mb-3 shadow-sm">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-3">
+                <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
+                  <Text className="text-white text-xl">🎁</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-gray-900 text-base font-semibold mb-1">
+                    Beneficios de mis tarjetas
+                  </Text>
+                  <Text className="text-sm text-gray-700">
+                    Promociones, puntos y más...
+                  </Text>
+                </View>
+              </View>
+              <Text className="text-gray-700 text-xl">›</Text>
+            </View>
+          </View>
+
+          {/* Contrata aquí */}
+          <View className="bg-gradient-to-r from-BanorteRed to-[#e94e1b] p-4 rounded-xl shadow-sm">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-3">
+                <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
+                  <Text className="text-white text-xl">📃</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-white text-base font-semibold mb-1">
+                    Contrata aquí
+                  </Text>
+                  <Text className="text-sm text-white/90">
+                    Tarjeta de Crédito, Pagarés y más
+                  </Text>
+                </View>
+              </View>
+              <Text className="text-black text-xl">›</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Asistente Hormi */}
+        <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
+          <View className="items-center">
+            <TouchableOpacity
+              onPress={() => router.push("/(root)/(tabs)/hormi")}
+              className="items-center"
+            >
+              <View className="w-16 h-16 bg-BanorteRed rounded-full items-center justify-center shadow-lg mb-3">
+                <View className="w-10 h-12">
+                  <View className="w-7 h-8 bg-white rounded-full mx-auto" />
+                  <View className="w-5 h-4 bg-white rounded-full mx-auto mt-1" />
+                  <View className="w-8 h-9 bg-white rounded-full mx-auto mt-1" />
+                </View>
+              </View>
+              <Text className="text-gray-900 text-base font-semibold mb-1">
+                Hormi - Tu asistente financiero
+              </Text>
+              <Text className="text-gray-600 text-sm text-center">
+                Obtén consejos personalizados y gestiona tus beneficios
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Botón Menú inferior fijo */}
+      <View className="bg-[#4a5568] py-4 px-4">
+        <TouchableOpacity>
+          <Text className="text-white text-center font-semibold text-base">
+            Menú
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+export default Home;
