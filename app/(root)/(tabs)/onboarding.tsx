@@ -45,7 +45,7 @@ const Onboarding = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <TouchableOpacity
-        onPress={() => router.replace("/(auth)/sign-up")}
+        onPress={() => router.replace("/(root)/(tabs)/hormi")}
         className="w-full flex justify-end items-end p-4"
       >
         <Text className="text-black text-md font-FunnelSansBold">Skip</Text>
