@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Wallet,
   TrendingUp,
@@ -94,6 +94,14 @@ async function askHormi(userMessage: string): Promise<string> {
 }
 
 export default function HormiView() {
+  const hormiFrames = [
+    require("../../../assets/images/animation-hormi-1/imagen-hormi.jpg"),
+    require("../../../assets/images/animation-hormi-1/imagen-hormi2.jpg"),
+    require("../../../assets/images/animation-hormi-1/imagen-hormi3.jpg"),
+    require("../../../assets/images/animation-hormi-1/imagen-hormi4.jpg"),
+  ];
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [showAdvice, setShowAdvice] = useState(false);
   const [showBenefits, setShowBenefits] = useState(false);
   const [currentAdvice, setCurrentAdvice] = useState("");
@@ -101,9 +109,39 @@ export default function HormiView() {
   const userPoints = 20;
   const userLevel = "Bronce";
 
+  function HormiMascot({ onClick }: { onClick: () => void }) {
+    return (
+      <TouchableOpacity onPress={onClick} className="mb-8">
+        <Image
+          source={isAnimating ? hormiFrames[currentFrame] : images.hormiMascot}
+          className="w-72 h-72"
+        />
+      </TouchableOpacity>
+    );
+  }
+
+  // Después del handleHormiClick
+  useEffect(() => {
+    let interval: any = null;
+
+    if (isAnimating) {
+      interval = setInterval(() => {
+        setCurrentFrame((prev) => (prev + 1) % hormiFrames.length);
+      }, 300); // Cambia frame cada 300ms
+    } else {
+      setCurrentFrame(0); // Volver al frame inicial
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isAnimating]);
+
   const handleHormiClick = async () => {
     if (isLoadingAdvice) return;
 
+    setIsAnimating(true);
+    setIsLoadingAdvice(true);
     setIsLoadingAdvice(true);
     setCurrentAdvice("");
     setShowAdvice(true);
@@ -114,6 +152,11 @@ export default function HormiView() {
 
     setCurrentAdvice(newAdvice);
     setIsLoadingAdvice(false);
+
+    // Mantener animación por 3 segundos más (simulando audio)
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 3000);
   };
 
   return (
@@ -242,14 +285,6 @@ function PointsDisplay({ level, points }: { level: string; points: number }) {
         <Text className="text-lg font-semibold text-gray-700 ml-2">PUNTOS</Text>
       </View>
     </View>
-  );
-}
-
-function HormiMascot({ onClick }: { onClick: () => void }) {
-  return (
-    <TouchableOpacity onPress={onClick} className="mb-8">
-      <Image source={images.hormiMascot} className="w-72 h-72" />
-    </TouchableOpacity>
   );
 }
 
