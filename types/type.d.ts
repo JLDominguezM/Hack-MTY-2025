@@ -29,3 +29,14 @@ declare interface PaymentProps {
   selectedDate?: Date;
   onDateChange?: (date: Date) => void;
 }
+
+export interface Service {
+  id: string;
+  name: string;
+  provider: string;
+  amount: number;
+  dueDate: string;
+  accountNumber: string;
+  icon: "lightbulb" | "flame" | "droplet" | "wifi" | "phone";
+  status: "pending" | "overdue" | "paid";
+}
