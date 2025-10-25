@@ -59,7 +59,7 @@ const SignIn = () => {
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white justify-center px-6">
         <View className="mb-8 mt-16">
-          <Text className="text-3xl font-bold text-red-600 text-center mb-2">
+          <Text className="text-3xl font-bold text-BanorteRed text-center mb-2">
             Bienvenido de vuelta
           </Text>
           <Text className="text-lg text-gray-500 text-center">
@@ -68,9 +68,11 @@ const SignIn = () => {
         </View>
 
         <View className="mb-4">
-          <Text className="text-lg font-semibold mb-2 text-red-600">Email</Text>
+          <Text className="text-lg font-semibold mb-2 text-BanorteRed">
+            Email
+          </Text>
           <TextInput
-            className="w-full p-4 border-2 border-red-200 rounded-xl text-gray-800 focus:border-red-500"
+            className="w-full p-4 border-2 border-red-200 rounded-xl text-gray-800 focus:border-BanorteRed"
             placeholder="Ingresa tu email"
             placeholderTextColor="#9CA3AF"
             value={form.email}
@@ -81,11 +83,11 @@ const SignIn = () => {
         </View>
 
         <View className="mb-6">
-          <Text className="text-lg font-semibold mb-2 text-red-600">
+          <Text className="text-lg font-semibold mb-2 text-BanorteRed">
             Contraseña
           </Text>
           <TextInput
-            className="w-full p-4 border-2 border-red-200 rounded-xl text-gray-800 focus:border-red-500"
+            className="w-full p-4 border-2 border-red-200 rounded-xl text-gray-800 focus:border-BanorteRed"
             placeholder="Ingresa tu contraseña"
             placeholderTextColor="#9CA3AF"
             value={form.password}
@@ -96,7 +98,7 @@ const SignIn = () => {
 
         <TouchableOpacity
           onPress={onSignInPress}
-          className="w-full bg-red-600 p-4 rounded-xl mb-6"
+          className="w-full bg-BanorteRed p-4 rounded-xl mb-6"
         >
           <Text className="text-white text-lg font-bold text-center">
             Iniciar Sesión
@@ -106,7 +108,7 @@ const SignIn = () => {
         <View className="flex-row justify-center">
           <Text className="text-gray-500">¿No tienes cuenta? </Text>
           <Link href="/sign-up">
-            <Text className="text-red-600 font-semibold">Regístrate</Text>
+            <Text className="text-BanorteRed font-semibold">Regístrate</Text>
           </Link>
         </View>
       </View>
