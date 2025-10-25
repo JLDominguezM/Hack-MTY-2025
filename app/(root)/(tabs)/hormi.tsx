@@ -1,6 +1,4 @@
-// app/(root)/(tabs)/hormi.tsx
-
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Wallet,
   TrendingUp,
@@ -27,23 +25,14 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// --- DATOS ---
+import { ActivityIndicator, Image } from "react-native";
+
+
 const navigationItems = [
   { icon: Wallet, label: "Mis cuentas", active: false },
   { icon: TrendingUp, label: "Mis inversiones", active: false },
   { icon: Receipt, label: "Pago de servicios", active: false },
   { icon: ArrowLeftRight, label: "Transferir", active: false },
-];
-
-const hormiAdvice = [
-  "💡 Ahorra el 10% de tus ingresos mensuales para crear tu fondo de emergencia.",
-  "🎯 Establece metas financieras a corto, mediano y largo plazo.",
-  "📊 Revisa tus gastos semanalmente para identificar en qué puedes ahorrar.",
-  "🏦 Aprovecha los beneficios de tus tarjetas para acumular más puntos.",
-  "💳 Paga tu tarjeta de crédito antes de la fecha de corte para evitar intereses.",
-  "🌟 Usa tus puntos de beneficios para obtener descuentos en empresas asociadas.",
-  "📱 Configura alertas de gastos para mantener tu presupuesto bajo control.",
-  "🎁 Aprovecha las promociones de meses sin intereses en compras importantes.",
 ];
 
 const benefits = [
@@ -91,19 +80,51 @@ const benefits = [
   },
 ];
 
-// --- COMPONENTE PRINCIPAL ---
-// Usamos "export default" para que Expo Router lo reconozca como una pantalla
+const API_URL = "/gemini";
+
+async function askHormi(userMessage: string): Promise<string> {
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: userMessage }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("API Error:", response.status, errorData);
+      return `Hormi tuvo un problema (${response.status}): ${errorData.error || "Error desconocido del servidor"}`;
+    }
+    const data = await response.json();
+    return data.ai_response || "Hormi no respondió como esperaba.";
+  } catch (error) {
+    console.error("Network Error calling Hormi API:", error);
+    return "No me pude conectar con Hormi. Revisa tu conexión a internet.";
+  }
+}
+
 export default function HormiView() {
   const [showAdvice, setShowAdvice] = useState(false);
   const [currentAdvice, setCurrentAdvice] = useState("");
+  const [isLoadingAdvice, setIsLoadingAdvice] = useState(false);
   const userPoints = 20;
   const userLevel = "Bronce";
 
-  const handleHormiClick = () => {
-    const randomAdvice =
-      hormiAdvice[Math.floor(Math.random() * hormiAdvice.length)];
-    setCurrentAdvice(randomAdvice);
+  const handleHormiClick = async () => {
+    if (isLoadingAdvice) return;
+
+    setIsLoadingAdvice(true);
+    setCurrentAdvice("");
     setShowAdvice(true);
+
+    const newAdvice = await askHormi(
+      "Dame un consejo corto de ahorro o finanzas sostenibles, diferente cada vez."
+    );
+
+    setCurrentAdvice(newAdvice);
+    setIsLoadingAdvice(false);
   };
 
   return (
@@ -120,6 +141,7 @@ export default function HormiView() {
 
       <AdviceDialog
         advice={currentAdvice}
+        isLoading={isLoadingAdvice}
         isOpen={showAdvice}
         onClose={() => setShowAdvice(false)}
       />
@@ -127,7 +149,7 @@ export default function HormiView() {
   );
 }
 
-// --- SUB-COMPONENTES (Hacen el código más limpio) ---
+// --- SUB-COMPONENTES ---
 
 function HormiHeader() {
   return (
@@ -192,8 +214,9 @@ function HormiMascot({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="mb-8 active:scale-95 transition-transform"
     >
+      {/* Usando la ruta absoluta desde la carpeta 'public' */}
       <img
-        src={"/Hormi.png"}
+        src="/Hormi.png"
         alt="Mascota Hormi"
         width={280}
         height={280}
@@ -213,7 +236,7 @@ function BenefitsSheet({ userPoints }: { userPoints: number }) {
       </SheetTrigger>
       <SheetContent
         side="bottom"
-        className="h-[85vh] rounded-t-3xl max-w-[430px] mx-auto bg-white"
+        className="h-[85vh] rounded-t-3xl max-w-[430px] mx-auto bg-white" // Fondo blanco añadido
       >
         <SheetHeader className="mb-6">
           <SheetTitle className="text-2xl text-center">
@@ -281,21 +304,19 @@ function BenefitCard({
   );
 }
 
-
 function AdviceDialog({
   advice,
+  isLoading,
   isOpen,
   onClose,
 }: {
   advice: string;
+  isLoading: boolean;
   isOpen: boolean;
   onClose: () => void;
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      {/* --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-        Añadimos 'bg-white' para forzar el fondo blanco en el modal.
-      */}
       <DialogContent className="max-w-[350px] rounded-2xl bg-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[#EC0000]">
@@ -303,14 +324,20 @@ function AdviceDialog({
             Consejo de Hormi
           </DialogTitle>
         </DialogHeader>
-        <div className="py-4">
-          <p className="text-gray-700 leading-relaxed">{advice}</p>
+        <div className="py-4 min-h-[60px] flex items-center justify-center">
+          {/* Muestra ActivityIndicator si está cargando, si no, el consejo */}
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#EC0000" />
+          ) : (
+            <p className="text-gray-700 leading-relaxed">{advice}</p>
+          )}
         </div>
         <button
           onClick={onClose}
-          className="w-full bg-[#EC0000] text-white py-3 rounded-lg active:bg-[#CC0000] transition-colors"
+          className="w-full bg-[#EC0000] text-white py-3 rounded-lg active:bg-[#CC0000] transition-colors mt-2"
+          disabled={isLoading} // Deshabilita el botón mientras carga
         >
-          ¡Gracias, Hormi!
+          {isLoading ? "Pensando..." : "¡Gracias, Hormi!"}
         </button>
       </DialogContent>
     </Dialog>
