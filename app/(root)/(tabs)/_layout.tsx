@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import { View, Image, ImageSourcePropType } from "react-native";
 import { icons } from "@/constants";
 
+
 const TabIcon = ({
   source,
   focused,
@@ -55,6 +56,16 @@ const Layout = () => {
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} source={icons.home} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="hormi" // 2. El 'name' debe coincidir con tu archivo: hormi.tsx
+        options={{
+          title: "Hormi",
+          headerShown: false,
+          // tabBarIcon: ({ focused }) => (
+          //   <TabIcon focused={focused} source={icons.hormi} />
+          // ),
         }}
       />
       <Tabs.Screen
