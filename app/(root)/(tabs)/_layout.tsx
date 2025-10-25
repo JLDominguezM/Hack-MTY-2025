@@ -1,6 +1,9 @@
 import { Tabs } from "expo-router";
 import { View, Image, ImageSourcePropType } from "react-native";
 import { icons } from "@/constants";
+import { Stack, useRouter } from "expo-router";
+import { TouchableOpacity } from "react-native";
+import { ArrowLeft } from "lucide-react-native";
 
 const TabIcon = ({
   source,
@@ -25,90 +28,31 @@ const TabIcon = ({
   </View>
 );
 
-const Layout = () => {
+export default function AppLayout() {
+  const router = useRouter();
+
   return (
-    <Tabs
+    <Stack
       screenOptions={{
-        tabBarActiveTintColor: "white",
-        tabBarInactiveTintColor: "white",
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: "#333333",
-          borderRadius: 50,
-          overflow: "hidden",
-          marginHorizontal: 20,
-          marginBottom: 20,
-          height: 78,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexDirection: "row",
-          position: "absolute",
-        },
+        headerStyle: { backgroundColor: "#EC0000" }, 
+        headerTintColor: "#fff", 
+        headerTitleStyle: { fontWeight: "bold" },
+        headerBackTitleVisible: false, 
+        headerLeft: (props) =>
+          
+          props.canGoBack ? ( 
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ marginLeft: 10 }}
+            >
+              <ArrowLeft color="#fff" size={24} />
+            </TouchableOpacity>
+          ) : null,
       }}
     >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: "Home",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.home} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="hormi" // 2. El 'name' debe coincidir con tu archivo: hormi.tsx
-        options={{
-          title: "Hormi",
-          headerShown: false,
-          // tabBarIcon: ({ focused }) => (
-          //   <TabIcon focused={focused} source={icons.hormi} />
-          // ),
-        }}
-      />
-      <Tabs.Screen
-        name="bookings"
-        options={{
-          title: "Bookings",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.list} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="payServices"
-        options={{
-          title: "PayServices",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.list} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="banorteHome"
-        options={{
-          title: "BanorteHome",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.list} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.profile} />
-          ),
-        }}
-      />
-    </Tabs>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      {/* Si tienes otras pantallas fuera de las tabs */}
+      <Stack.Screen name="otraPantalla" options={{ title: "Otra Pantalla" }} />
+    </Stack>
   );
-};
-
-export default Layout;
+}

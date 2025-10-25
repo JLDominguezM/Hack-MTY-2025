@@ -11,29 +11,46 @@ import {
   FileText,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { View } from "@/types/type";
 
-const navigationItems = [
-  { icon: Wallet, label: "Mis\ncuentas", active: true, view: null },
-  { icon: TrendingUp, label: "Mis\ninversiones", active: false, view: null },
+import { useRouter, Href } from "expo-router";
+
+type NavigationItem = {
+  icon?: React.ElementType;
+  label: string;
+  active: boolean;
+  href: Href | null;
+  isHormi?: boolean;
+};
+
+const navigationItems: NavigationItem[] = [
+  { icon: Wallet, label: "Mis\ncuentas", active: true, href: null },
+  {
+    icon: TrendingUp,
+    label: "Mis\ninversiones",
+    active: false,
+    href: "/investments",
+  },
   {
     icon: Receipt,
     label: "Pago de\nservicios",
     active: false,
-    view: "payments" as View,
+    href: "/payServices",
   },
-  { icon: ArrowLeftRight, label: "Transferir", active: false, view: null },
-  { label: "Hormi", active: false, view: "hormi" as View, isHormi: true },
+  {
+    icon: ArrowLeftRight,
+    label: "Transferir",
+    active: false,
+    href: "/transfer",
+  },
+  { label: "Hormi", active: false, href: "/hormi", isHormi: true },
 ];
 
-interface BanorteHomeProps {
-  onNavigate: (view: View) => void;
-}
+export default function BanorteHome() {
+  const router = useRouter();
 
-export default function BanorteHome({ onNavigate }: BanorteHomeProps) {
   return (
     <div className="min-h-screen bg-gray-100 max-w-[430px] mx-auto flex flex-col">
-      {/* Header rojo */}
+      {/* Header */}
       <div className="bg-[#EC0000] text-white px-4 pt-3 pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-2 flex-1">
@@ -56,18 +73,21 @@ export default function BanorteHome({ onNavigate }: BanorteHomeProps) {
         </div>
       </div>
 
-      {/* Navegación */}
+      {/* Navigation */}
       <div className="bg-[#3a3a3a] px-2 py-3">
-        <div className="flex items-center justify-between">
+        {/* Use justify-around for better spacing with 5 items */}
+        <div className="flex items-center justify-around">
           {navigationItems.map((item, index) => {
             if (item.isHormi) {
               return (
                 <button
                   key={index}
-                  onClick={() => item.view && onNavigate(item.view)}
-                  className="flex flex-col items-center gap-1 px-2 text-gray-400"
+                  onClick={() => item.href && router.push(item.href as Href)}
+                  className="flex flex-col items-center gap-1 px-2 text-gray-400 w-1/5"
+                  disabled={!item.href}
                 >
                   <div className="w-6 h-6 flex items-center justify-center">
+                    {/* SVG for Hormi icon */}
                     <svg
                       width="20"
                       height="24"
@@ -137,14 +157,15 @@ export default function BanorteHome({ onNavigate }: BanorteHomeProps) {
               );
             }
 
-            const Icon = item.icon!;
+            const Icon = item.icon!; 
             return (
               <button
                 key={index}
-                onClick={() => item.view && onNavigate(item.view)}
+                onClick={() => item.href && router.push(item.href as Href)}
                 className={`flex flex-col items-center gap-1 px-2 ${
                   item.active ? "text-white" : "text-gray-400"
-                }`}
+                } w-1/5`}
+                disabled={!item.href}
               >
                 <Icon className="w-6 h-6" />
                 <span className="text-[10px] text-center whitespace-pre-line leading-tight">
@@ -156,12 +177,13 @@ export default function BanorteHome({ onNavigate }: BanorteHomeProps) {
         </div>
       </div>
 
-      {/* Contenido principal */}
-      <div className="flex-1 px-3 py-3 space-y-3 pb-20">
-        {/* Banner promocional */}
+      {/* Main Content */}
+      <div className="flex-1 px-3 py-3 space-y-3 pb-28">
+        {" "}
+        {/* Increased padding-bottom */}
+        {/* Promotional Banner */}
         <Card className="bg-gradient-to-r from-[#f15a29] to-[#e94e1b] text-white p-0 overflow-hidden relative border-0 h-[100px]">
           <div className="absolute inset-0">
-            {/* Placeholder gradient background instead of image */}
             <div className="w-full h-full bg-gradient-to-r from-[#f15a29] to-[#e94e1b]" />
           </div>
           <div className="relative z-10 p-3 flex items-center justify-between h-full">
@@ -178,16 +200,14 @@ export default function BanorteHome({ onNavigate }: BanorteHomeProps) {
             </button>
           </div>
         </Card>
-
-        {/* Mis cuentas */}
+        {/* My Accounts Section */}
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-gray-900">Mis cuentas</h2>
           <button className="p-1">
             <Settings className="w-5 h-5 text-gray-600" />
           </button>
         </div>
-
-        {/* Cuenta Nómina */}
+        {/* Payroll Account Card */}
         <Card className="p-3 bg-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -223,8 +243,7 @@ export default function BanorteHome({ onNavigate }: BanorteHomeProps) {
             </div>
           </div>
         </Card>
-
-        {/* Beneficios de mis tarjetas */}
+        {/* Card Benefits Card */}
         <Card className="bg-gradient-to-r from-[#f9c74f] to-[#f8b739] p-3 border-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -243,8 +262,7 @@ export default function BanorteHome({ onNavigate }: BanorteHomeProps) {
             <ChevronRight className="w-5 h-5 text-gray-700" />
           </div>
         </Card>
-
-        {/* Contrata aquí */}
+        {/* Contract Here Card */}
         <Card className="bg-gradient-to-r from-[#f15a29] to-[#e94e1b] p-3 border-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -261,63 +279,9 @@ export default function BanorteHome({ onNavigate }: BanorteHomeProps) {
             <ChevronRight className="w-5 h-5 text-white" />
           </div>
         </Card>
-
-        {/* Icono Hormi */}
-        <div className="pt-1 flex flex-col items-center">
-          <button onClick={() => onNavigate("hormi")} className="relative">
-            <div className="w-12 h-12 bg-[#EC0000] rounded-full flex items-center justify-center shadow-lg">
-              <svg
-                width="28"
-                height="36"
-                viewBox="0 0 28 36"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <ellipse cx="14" cy="9" rx="5" ry="6" fill="white" />
-                <ellipse cx="14" cy="18" rx="4" ry="3" fill="white" />
-                <ellipse cx="14" cy="27" rx="6" ry="7" fill="white" />
-                <line
-                  x1="10"
-                  y1="16"
-                  x2="6"
-                  y2="21"
-                  stroke="white"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="18"
-                  y1="16"
-                  x2="22"
-                  y2="21"
-                  stroke="white"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="9"
-                  y1="25"
-                  x2="4"
-                  y2="32"
-                  stroke="white"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="19"
-                  y1="25"
-                  x2="24"
-                  y2="32"
-                  stroke="white"
-                  strokeWidth="2"
-                />
-              </svg>
-            </div>
-            <p className="text-[10px] text-gray-600 mt-1.5 text-center">
-              Hormi
-            </p>
-          </button>
-        </div>
       </div>
 
-      {/* Botón Menú inferior */}
+      {/* Bottom Menu Button */}
       <div className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-[#5a5e66] py-3">
         <button className="w-full text-white text-center">Menú</button>
       </div>

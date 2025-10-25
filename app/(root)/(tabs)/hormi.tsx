@@ -27,6 +27,8 @@ import { Badge } from "@/components/ui/badge";
 
 import { ActivityIndicator, Image } from "react-native";
 
+import CustomHeader from "@/components/CustomHeader";
+
 
 const navigationItems = [
   { icon: Wallet, label: "Mis cuentas", active: false },
@@ -129,7 +131,8 @@ export default function HormiView() {
 
   return (
     <div className="min-h-screen bg-white max-w-[430px] mx-auto flex flex-col">
-      <HormiHeader />
+      <CustomHeader title="Hormi" showBackButton={true} />
+      {/* <HormiHeader /> */}
       <SubNavigation />
 
       {/* Contenido principal */}
