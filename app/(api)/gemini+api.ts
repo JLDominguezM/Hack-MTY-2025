@@ -1,11 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-// import * as dotenv from "dotenv";
-import * as readline from "readline/promises"; // Para leer input de la consola
 
-// Cargar variables de entorno (equivale a load_dotenv())
-// dotenv.config();
-
-// Define tu prompt de sistema (las instrucciones de Hormi)
 const hormiInstructions = `[INICIO DE PROMPT DE SISTEMA]
 
 **1. TU ACTO (Persona):**
@@ -36,69 +30,40 @@ Perteneces a la gran colonia de Banorte, "El Banco Fuerte de México". Tu misió
 
 **[FIN DE PROMPT DE SISTEMA]**`;
 
-// 1. Configura el cliente (Usando la sintaxis que te funcionó)
 const apiKey = process.env.GEMINI_API_KEY || "";
 if (!apiKey) {
-  throw new Error(
-    "No se encontró la variable de entorno GEMINI_API_KEY. Asegúrate de que tu archivo .env esté correcto."
-  );
+  console.error("GEMINI_API_KEY no encontrada.");
 }
 
-// Usamos el constructor que te funciona
 const ai = new GoogleGenAI({ apiKey });
 
-// Creamos una función async principal para poder usar 'await'
-async function startChat() {
-  // 2. Inicia un "chat" simple
-  console.log("Iniciando chat con Hormi... (Escribe 'salir' para terminar)");
-  console.log("---");
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const userInput = body.message;
 
-  // Configura el lector de líneas (para simular el input() de Python)
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  // Vamos a probar con una primera pregunta automática
-  const primeraPregunta = "¡Hola Hormi! Dame un tip para hoy.";
-  console.log(`Usuario: ${primeraPregunta}`);
-
-  let promptCompleto = hormiInstructions + "\n\nUsuario: " + primeraPregunta;
-
-  // --- Llamada 1 ---
-  // Usamos el modelo y la sintaxis que ya te funcionaron
-  let response = await ai.models.generateContent({
-    model: "gemini-2.0-flash-001", // El modelo que te funcionó
-    contents: promptCompleto,
-  });
-
-  // Usamos .text (propiedad) como en tu script funcional
-  console.log(`Hormi: ${response.text}`);
-  console.log("---");
-
-  // Bucle de chat
-  while (true) {
-    const userInput = await rl.question("Tu: "); // Equivale a input()
-    if (userInput.toLowerCase() === "salir") {
-      break;
+    if (!userInput) {
+      return Response.json(
+        { error: "No se proporcionó un 'message' en el body" },
+        { status: 400 }
+      );
     }
 
-    promptCompleto = hormiInstructions + "\n\nUsuario: " + userInput;
+    const promptCompleto = hormiInstructions + "\n\nUsuario: " + userInput;
 
-    // --- Llamada 2 (dentro del bucle) ---
-    response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-001", // Mismo modelo
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-001",
       contents: promptCompleto,
     });
 
-    console.log(`Hormi: ${response.text}`);
-    console.log("---");
+    const text = response.text;
+
+    return Response.json({ ai_response: text });
+  } catch (error) {
+    console.error("Error en la API Route POST:", error);
+    return Response.json(
+      { error: "Error al generar contenido" },
+      { status: 500 }
+    );
   }
-
-  // Cerrar el lector y terminar
-  rl.close();
-  console.log("Chat con Hormi terminado.");
 }
-
-// Ejecutar la función principal del chat
-startChat();
