@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 import { ServiceCard } from "@/components/ServiceCart";
 import { PaymentSummary } from "@/components/PaymentSummary";
+import { View } from "@/types/type";
 
 export interface Service {
   id: string;
@@ -66,8 +67,6 @@ const mockServices: Service[] = [
     status: "overdue",
   },
 ];
-
-export type View = "login" | "home" | "hormi" | "payments";
 
 interface PaymentServicesViewProps {
   onNavigate: (view: View) => void;

@@ -6,9 +6,9 @@ import {
   Phone,
   AlertCircle,
 } from "lucide-react";
-import { Card } from "./card";
-import { Checkbox } from "./checkbox";
-import { Badge } from "./badge";
+import { Card } from "./ui/card";
+import { Checkbox } from "./ui/checkbox";
+import { Badge } from "./ui/badge";
 import type { Service } from "@/app/(root)/(tabs)/payServices";
 
 interface ServiceCardProps {

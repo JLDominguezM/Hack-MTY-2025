@@ -2,7 +2,6 @@ import { Tabs } from "expo-router";
 import { View, Image, ImageSourcePropType } from "react-native";
 import { icons } from "@/constants";
 
-
 const TabIcon = ({
   source,
   focused,
@@ -82,6 +81,16 @@ const Layout = () => {
         name="payServices"
         options={{
           title: "PayServices",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} source={icons.list} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="banorteHome"
+        options={{
+          title: "BanorteHome",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} source={icons.list} />
