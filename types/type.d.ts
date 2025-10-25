@@ -53,3 +53,15 @@ export interface Service {
   icon: "lightbulb" | "flame" | "droplet" | "wifi" | "phone";
   status: "pending" | "overdue" | "paid";
 }
+
+declare interface LocationStore {
+  userLatitude: number | null;
+  userLongitude: number | null;
+  setUserLocation: ({
+    latitude,
+    longitude,
+  }: {
+    latitude: number;
+    longitude: number;
+  }) => void;
+}

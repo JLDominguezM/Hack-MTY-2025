@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
 import { useUser, useAuth } from "@clerk/clerk-expo";
+import { useLocationStore } from "@/store";
 
 const { height } = Dimensions.get("window");
 
@@ -35,6 +36,7 @@ const Home = () => {
   const platformLabel =
     Platform.OS === "web" ? "Web" : Platform.OS === "ios" ? "Móvil" : "";
 
+  const { setUserLocation, userLatitude, userLongitude } = useLocationStore();
   const { user } = useUser();
 
   const getDisplayName = () => {
