@@ -1,9 +1,7 @@
-import { calculateRegion, generateMarkersFromData } from "@/lib/map";
-import { useLocationStore, useMariachiStore } from "@/store";
+import { useLocationStore } from "@/store";
 import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
-import { Mariachi, MarkerData } from "@/types/type";
 import { useFetch } from "@/lib/fetch";
 import { icons } from "@/constants";
 import MapViewDirections from "react-native-maps-directions";

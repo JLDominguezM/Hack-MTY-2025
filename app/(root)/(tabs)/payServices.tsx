@@ -3,7 +3,8 @@ import { ServiceCard } from "@/components/ServiceCart";
 import { PaymentSummary } from "@/components/PaymentSummary";
 import CustomHeader from "@/components/CustomHeader";
 import { Service } from "@/types/type";
-import { View, Text, Pressable, ScrollView, SafeAreaView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, Pressable, ScrollView } from "react-native";
 
 const mockServices: Service[] = [
   {
