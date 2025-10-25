@@ -8,6 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { router } from "expo-router";
+import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
 
 const { height } = Dimensions.get("window");
@@ -37,8 +38,8 @@ const Home = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header rojo */}
       <View className="bg-[#EC0000] px-6 pt-12 pb-4">
-        <View className="flex-row items-start justify-between">
-          <View className="flex-row items-start gap-3 flex-1">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-3 flex-1">
             <View className="bg-white rounded-full p-2">
               <Text className="text-[#EC0000] text-lg">👤</Text>
             </View>
@@ -52,10 +53,13 @@ const Home = () => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity className="relative">
-            <Text className="text-white text-xl">🔔</Text>
-            <View className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white" />
-          </TouchableOpacity>
+          <View className="flex-row items-center gap-3">
+            <TouchableOpacity className="relative">
+              <Text className="text-white text-xl">🔔</Text>
+              <View className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white" />
+            </TouchableOpacity>
+            <SignOutButton />
+          </View>
         </View>
       </View>
 
@@ -103,7 +107,7 @@ const Home = () => {
 
           <TouchableOpacity
             className="flex-col items-center gap-2 flex-1"
-            onPress={() => router.push("/(root)/(tabs)/hormi")}
+            onPress={() => router.push("/(root)/(tabs)/welcome")}
           >
             <View className="w-8 h-8 bg-[#EC0000] rounded-full items-center justify-center">
               <View className="w-5 h-6">
@@ -164,12 +168,12 @@ const Home = () => {
                   <Text className="text-gray-900 text-base font-semibold mb-1">
                     Nómina Banorte 2
                   </Text>
-                  <Text className="text-sm text-gray-500">****7355</Text>
+                  <Text className="text-sm text-gray-500">****8999</Text>
                 </View>
               </View>
               <View className="flex-row items-center gap-2">
                 <Text className="text-gray-900 font-bold text-base">
-                  $ 8.02 MN
+                  $ 1702.02 MN
                 </Text>
                 <Text className="text-gray-400 text-xl">›</Text>
               </View>
@@ -208,18 +212,18 @@ const Home = () => {
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
                 <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
-                  <Text className="text-white text-xl">�</Text>
+                  <Text className="text-white text-xl">📃</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-white text-base font-semibold mb-1">
+                  <Text className="text-black text-base font-semibold mb-1">
                     Contrata aquí
                   </Text>
-                  <Text className="text-sm text-white/90">
+                  <Text className="text-sm text-black/90">
                     Tarjeta de Crédito, Pagarés y más
                   </Text>
                 </View>
               </View>
-              <Text className="text-white text-xl">›</Text>
+              <Text className="text-black text-xl">›</Text>
             </View>
           </View>
         </View>
@@ -228,7 +232,7 @@ const Home = () => {
         <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
           <View className="items-center">
             <TouchableOpacity
-              onPress={() => router.push("/(root)/(tabs)/hormi")}
+              onPress={() => router.push("/(root)/(tabs)/welcome")}
               className="items-center"
             >
               <View className="w-16 h-16 bg-[#EC0000] rounded-full items-center justify-center shadow-lg mb-3">
