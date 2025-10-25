@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import {
   View,
@@ -9,32 +7,13 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Platform, 
+  Platform,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient"; 
-import { useBalanceStore } from "./balance"; 
-
-
-
-function CustomHeader({ router }) {
-  return (
-    <View className="bg-[#EC0000] px-4 py-4 pt-12">
-      <View className="flex-row items-center justify-between">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="p-2 rounded-lg transition-colors"
-        >
-          <ArrowLeft color="white" size={24} />
-        </TouchableOpacity>
-        <Text className="text-white text-xl font-semibold">Enviar Propina</Text>
-        <View className="w-10"></View>
-      </View>
-    </View>
-  );
-}
-
+import { LinearGradient } from "expo-linear-gradient";
+import { useBalanceStore } from "./balance";
+import CustomHeader from "@/components/CustomHeader";
 
 export default function TipView() {
   const router = useRouter();
@@ -59,7 +38,6 @@ export default function TipView() {
     setTimeout(() => {
       decreaseBalance(tipValue);
       setSending(false);
-      setShowAirdrop(true);
 
       setTimeout(() => {
         Alert.alert(
@@ -72,118 +50,96 @@ export default function TipView() {
     }, 1500);
   };
 
-  // --- Animación de Éxito (Simplified Native) ---
-  if (showAirdrop) {
-    return (
-      <LinearGradient
-        colors={["#3B82F6", "#A855F7", "#EC4899"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="flex-1 items-center justify-center p-6"
-      >
-        <View className="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-sm items-center">
-          <View className="mb-6">
-
-            <View className="w-24 h-24 mx-auto bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-              <Text className="text-white text-4xl">✅</Text>
-            </View>
-          </View>
-
-          <Text className="text-gray-900 text-2xl font-bold mb-1">
-            ¡Propina Enviada!
-          </Text>
-          <Text className="text-gray-600 mb-2">Has enviado</Text>
-          <Text className="text-[#EC0000] text-4xl font-bold mb-6">
-
-            {tipValue.toFixed(2)} MN
-          </Text>
-
-          <View className="w-full rounded-2xl p-4 mb-4 flex-row justify-between items-center bg-gray-50">
-            <Text className="text-sm text-gray-600">Saldo restante:</Text>
-            <Text className="text-gray-900 font-medium text-lg">
-              ${remainingBalance.toFixed(2)} MN
-            </Text>
-          </View>
-
-        </View>
-      </LinearGradient>
-    );
-  }
-
   return (
-    <View className="flex-1 bg-gray-50">
-      <CustomHeader router={router} />
+    <View className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <CustomHeader title="Enviar Propina" showBackButton={true} />
 
       <ScrollView
         style={{ flex: 1 }}
-        className="p-6"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        className="px-6"
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: 20 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View className="w-full max-w-sm mx-auto">
-          {/* Ícono de propina */}
-          <View className="mb-8 items-center">
-            <LinearGradient
-              colors={["#FACC15", "#F97316"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="w-24 h-24 rounded-full flex items-center justify-center shadow-lg mb-4"
-            >
-              <Text className="text-5xl">💰</Text>
-            </LinearGradient>
-            <Text className="text-gray-900 text-lg font-semibold mb-1">
+        <View className="w-full max-w-md mx-auto">
+          {/* Header con ícono mejorado */}
+          <View className="mb-10 items-center">
+            <View className="relative mb-6">
+              <LinearGradient
+                colors={["#FFD700", "#FFA500", "#FF6347"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="w-32 h-32 rounded-full flex items-center justify-center shadow-2xl"
+              >
+                <Text className="text-6xl">💰</Text>
+              </LinearGradient>
+              {/* Decorative elements */}
+              <View className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full opacity-80"></View>
+              <View className="absolute -bottom-2 -left-2 w-6 h-6 bg-orange-400 rounded-full opacity-60"></View>
+            </View>
+
+            <Text className="text-gray-900 text-2xl font-bold mb-2 text-center">
               ¿Cuánto quieres enviar?
             </Text>
-            <Text className="text-sm text-gray-600">
-              Ingresa el monto de la propina
+            <Text className="text-gray-600 text-base text-center px-4">
+              Ingresa el monto de la propina que deseas dar
             </Text>
           </View>
 
-          {/* Input de monto */}
-          <View className="mb-6">
-            <Text className="block text-sm text-gray-700 mb-2">Monto</Text>
+          {/* Input de monto mejorado */}
+          <View className="mb-8">
+            <Text className="text-gray-800 text-base font-semibold mb-3">
+              Monto de la propina
+            </Text>
             <View className="relative">
-              <TextInput
-                keyboardType="numeric"
-                value={tipAmount}
-                onChangeText={setTipAmount}
-                placeholder="0.00"
-                placeholderTextColor="#9CA3AF"
-                className="text-2xl text-center border-2 border-gray-300 rounded-xl"
-                style={{
-                  paddingVertical: 15,
-                  paddingLeft: 40,
-                  paddingRight: 60,
-                }}
-              />
-              <Text
-                className="absolute left-4 top-1/2 text-gray-500 text-2xl"
-                style={{ transform: [{ translateY: -15 }] }}
-              >
-                $
-              </Text>
-              <Text
-                className="absolute right-4 top-1/2 text-gray-500 text-lg"
-                style={{ transform: [{ translateY: -12 }] }}
-              >
-                MN
-              </Text>
+              <View className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg overflow-hidden">
+                <TextInput
+                  keyboardType="numeric"
+                  value={tipAmount}
+                  onChangeText={setTipAmount}
+                  placeholder="0.00"
+                  placeholderTextColor="#9CA3AF"
+                  className="text-3xl text-center bg-white text-gray-900 font-bold"
+                  style={{
+                    paddingVertical: 20,
+                    paddingLeft: 50,
+                    paddingRight: 70,
+                  }}
+                />
+                {/* Dollar sign */}
+                <View className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <Text className="text-gray-500 text-3xl font-bold">$</Text>
+                </View>
+                {/* Currency */}
+                <View className="absolute right-4 top-1/2 -translate-y-1/2">
+                  <Text className="text-gray-500 text-xl font-semibold">
+                    MN
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
 
-          {/* Montos sugeridos */}
-          <View className="mb-6">
-            <Text className="text-sm text-gray-600 mb-2">
-              Montos sugeridos:
+          {/* Montos sugeridos mejorados */}
+          <View className="mb-8">
+            <Text className="text-gray-800 text-base font-semibold mb-4">
+              Montos sugeridos
             </Text>
-            <View className="flex-row flex-wrap justify-between gap-2">
+            <View className="flex-row justify-between gap-3">
               {[0.5, 1.0, 2.0, 5.0].map((amount) => (
                 <TouchableOpacity
                   key={amount}
                   onPress={() => setTipAmount(amount.toFixed(2))}
-                  className="bg-white border border-gray-300 rounded-lg py-2 flex-1 items-center active:bg-gray-100"
+                  className="flex-1 bg-white border-2 border-gray-200 rounded-xl py-4 items-center shadow-md active:border-blue-400 active:bg-blue-50"
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 3,
+                  }}
                 >
-                  <Text className="text-sm font-medium text-gray-700">
+                  <Text className="text-gray-800 font-bold text-lg">
                     ${amount.toFixed(2)}
                   </Text>
                 </TouchableOpacity>
@@ -191,18 +147,19 @@ export default function TipView() {
             </View>
           </View>
 
-          {/* Saldo actual y restante */}
-          <View className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-sm text-gray-600">Saldo actual:</Text>
-              <Text className="text-gray-900 font-medium">
+          {/* Información de saldo mejorada */}
+          <View className="bg-white rounded-2xl p-6 mb-6 shadow-lg border border-gray-100">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-gray-600 text-base">Saldo actual:</Text>
+              <Text className="text-gray-900 font-bold text-xl">
                 ${currentBalance.toFixed(2)} MN
               </Text>
             </View>
-            <View className="border-t border-gray-200 pt-3 flex-row justify-between items-center">
-              <Text className="text-sm text-gray-600">Te quedaría:</Text>
+            <View className="h-px bg-gray-200 mb-4"></View>
+            <View className="flex-row justify-between items-center">
+              <Text className="text-gray-600 text-base">Te quedaría:</Text>
               <Text
-                className={`font-semibold ${
+                className={`font-bold text-xl ${
                   isInvalid ? "text-red-600" : "text-green-600"
                 }`}
               >
@@ -211,25 +168,51 @@ export default function TipView() {
             </View>
           </View>
 
-          {/* Advertencia si el monto es mayor */}
+          {/* Advertencia mejorada */}
           {isInvalid && (
-            <View className="bg-red-100 border border-red-300 rounded-lg p-3 mb-6">
-              <Text className="text-sm text-red-700 text-center font-medium">
-                ⚠️ No tienes saldo suficiente
-              </Text>
+            <View className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6 flex-row items-center">
+              <View className="mr-3">
+                <Text className="text-red-500 text-2xl">⚠️</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-red-800 font-semibold text-base">
+                  Saldo insuficiente
+                </Text>
+                <Text className="text-red-600 text-sm">
+                  No tienes suficiente saldo para esta propina
+                </Text>
+              </View>
             </View>
           )}
 
-          {/* Botón de enviar */}
+          {/* Botón de enviar mejorado */}
           <TouchableOpacity
             onPress={handleSend}
             disabled={isDisabled}
-            className={`w-full py-4 rounded-xl shadow-lg flex-row items-center justify-center ${
-              isDisabled ? "bg-gray-400" : "bg-[#EC0000] active:bg-[#CC0000]"
+            className={`w-full py-5 rounded-2xl shadow-lg flex-row items-center justify-center ${
+              isDisabled
+                ? "bg-gray-300"
+                : "bg-gradient-to-r from-red-500 to-red-600 active:from-red-600 active:to-red-700"
             }`}
+            style={{
+              shadowColor: isDisabled ? "#000" : "#EF4444",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: isDisabled ? 0.1 : 0.3,
+              shadowRadius: 8,
+              elevation: isDisabled ? 2 : 6,
+            }}
           >
             {sending ? (
-              <ActivityIndicator size="small" color="white" />
+              <>
+                <ActivityIndicator
+                  size="small"
+                  color="white"
+                  className="mr-2"
+                />
+                <Text className="text-white text-lg font-bold">
+                  Enviando...
+                </Text>
+              </>
             ) : (
               <Text className="text-white text-lg font-bold">
                 Enviar Propina
