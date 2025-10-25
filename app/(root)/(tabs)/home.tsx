@@ -5,145 +5,193 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  Dimensions,
 } from "react-native";
 import { router } from "expo-router";
+const { Platform } = require("react-native");
+
+const { height } = Dimensions.get("window");
 
 const Home = () => {
+  const [now, setNow] = React.useState<Date>(new Date());
+  React.useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000); // actualiza cada minuto
+    return () => clearInterval(t);
+  }, []);
+
+  const dd = String(now.getDate()).padStart(2, "0");
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const yyyy = now.getFullYear();
+  let hh = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const ampm = hh >= 12 ? "p.m." : "a.m.";
+  hh = hh % 12;
+  if (hh === 0) hh = 12;
+  const hourStr = String(hh).padStart(2, "0");
+
+  const formatted = `${dd}-${mm}-${yyyy} ${hourStr}:${minutes} ${ampm}`;
+  const platformLabel =
+    Platform.OS === "web" ? "Web" : Platform.OS === "ios" ? "Móvil" : "";
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <ScrollView className="flex-1">
-        {/* Header rojo */}
-        <View className="bg-[#EC0000] px-4 pt-3 pb-3">
-          <View className="flex-row items-start justify-between">
-            <View className="flex-row items-start gap-2 flex-1">
-              <View className="bg-white rounded-full p-1.5 mt-0.5">
-                <Text className="text-[#EC0000] text-sm">👤</Text>
-              </View>
-              <View>
-                <Text className="text-white text-base font-medium mb-0.5">
-                  Hola Daniela
-                </Text>
-                <Text className="text-xs text-white/90 leading-tight">
-                  Último ingreso{"\n"}24-10-2025 04:05 p.m. Móvil
-                </Text>
-              </View>
+    <View className="flex-1 bg-gray-50">
+      {/* Header rojo */}
+      <View className="bg-[#EC0000] px-6 pt-12 pb-4">
+        <View className="flex-row items-start justify-between">
+          <View className="flex-row items-start gap-3 flex-1">
+            <View className="bg-white rounded-full p-2">
+              <Text className="text-[#EC0000] text-lg">👤</Text>
             </View>
-            <TouchableOpacity className="relative mt-0.5">
-              <Text className="text-white text-lg">🔔</Text>
-              <View className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-white rounded-full border border-[#EC0000]" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Navegación */}
-        <View className="bg-[#3a3a3a] px-2 py-3">
-          <View className="flex-row items-center justify-between">
-            <TouchableOpacity className="flex-col items-center gap-1 px-2">
-              <Text className="text-white text-lg">💰</Text>
-              <Text className="text-[10px] text-white text-center leading-tight">
-                Mis{"\n"}cuentas
+            <View className="flex-1">
+              <Text className="text-white text-lg font-bold mb-1">
+                Hola Daniela
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="flex-col items-center gap-1 px-2">
-              <Text className="text-gray-400 text-lg">📈</Text>
-              <Text className="text-[10px] text-gray-400 text-center leading-tight">
-                Mis{"\n"}inversiones
+              <Text className="text-xs text-white/90 leading-tight">
+                Último ingreso{"\n"}
+                {formatted} {platformLabel}
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-col items-center gap-1 px-2"
-              onPress={() => router.push(`/(root)/(tabs)/payments`)}
-            >
-              <Text className="text-gray-400 text-lg">🧾</Text>
-              <Text className="text-[10px] text-gray-400 text-center leading-tight">
-                Pago de{"\n"}servicios
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="flex-col items-center gap-1 px-2">
-              <Text className="text-gray-400 text-lg">↔️</Text>
-              <Text className="text-[10px] text-gray-400 text-center leading-tight">
-                Transferir
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-col items-center gap-1 px-2"
-              onPress={() => router.push(`/(root)/(tabs)/hormi`)}
-            >
-              <View className="w-6 h-6 items-center justify-center">
-                <View className="w-5 h-6">
-                  <View className="w-3 h-3.5 bg-gray-400 rounded-full mx-auto" />
-                  <View className="w-2.5 h-2 bg-gray-400 rounded-full mx-auto mt-0.5" />
-                  <View className="w-4 h-4.5 bg-gray-400 rounded-full mx-auto mt-0.5" />
-                </View>
-              </View>
-              <Text className="text-[10px] text-gray-400 text-center leading-tight">
-                Hormi
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Contenido principal */}
-        <View className="flex-1 px-3 py-3 pb-20">
-          {/* Banner promocional */}
-          <View className="bg-[#f15a29] rounded-lg p-3 h-[100px] mb-3">
-            <View className="flex-row items-center justify-between h-full">
-              <View className="flex-1">
-                <Text className="text-white text-sm mb-1">Daniela</Text>
-                <Text className="text-white text-xs leading-tight">
-                  Conoce las promociones{"\n"}que tenemos para ti
-                </Text>
-              </View>
-              <TouchableOpacity className="bg-white px-3 py-1.5 rounded">
-                <Text className="text-[#f15a29] text-xs">Ver ofertas</Text>
-              </TouchableOpacity>
             </View>
           </View>
+          <TouchableOpacity className="relative">
+            <Text className="text-white text-xl">🔔</Text>
+            <View className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-          {/* Mis cuentas */}
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-gray-900 text-base font-medium">
-              Mis cuentas
+      {/* Navegación */}
+      <View className="bg-[#2a2a2a] px-3 py-4">
+        <View className="flex-row items-center justify-between">
+          <TouchableOpacity className="flex-col items-center gap-2 flex-1">
+            <View className="w-8 h-8 bg-white rounded-full items-center justify-center">
+              <Text className="text-[#2a2a2a] text-sm">💰</Text>
+            </View>
+            <Text className="text-[9px] text-white text-center leading-tight">
+              Mis{"\n"}cuentas
             </Text>
-            <TouchableOpacity className="p-1">
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-col items-center gap-2 flex-1">
+            <View className="w-8 h-8 items-center justify-center">
+              <Text className="text-gray-400 text-lg">📈</Text>
+            </View>
+            <Text className="text-[9px] text-gray-400 text-center leading-tight">
+              Mis{"\n"}inversiones
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-col items-center gap-2 flex-1"
+            onPress={() => router.push("/(root)/(tabs)/payments")}
+          >
+            <View className="w-8 h-8 items-center justify-center">
+              <Text className="text-gray-400 text-lg">🧾</Text>
+            </View>
+            <Text className="text-[9px] text-gray-400 text-center leading-tight">
+              Pago de{"\n"}servicios
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-col items-center gap-2 flex-1">
+            <View className="w-8 h-8 items-center justify-center">
+              <Text className="text-gray-400 text-lg">↔️</Text>
+            </View>
+            <Text className="text-[9px] text-gray-400 text-center leading-tight">
+              Transferir
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-col items-center gap-2 flex-1"
+            onPress={() => router.push("/(root)/(tabs)/hormi")}
+          >
+            <View className="w-8 h-8 bg-[#EC0000] rounded-full items-center justify-center">
+              <View className="w-5 h-6">
+                <View className="w-2 h-2.5 bg-white rounded-full mx-auto" />
+                <View className="w-1.5 h-1.5 bg-white rounded-full mx-auto mt-0.5" />
+                <View className="w-3 h-3 bg-white rounded-full mx-auto mt-0.5" />
+              </View>
+            </View>
+            <Text className="text-[9px] text-gray-400 text-center leading-tight">
+              Hormi
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Contenido principal con ScrollView */}
+      <ScrollView
+        className="flex-1 px-4"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        {/* Banner promocional */}
+        <View className="bg-gradient-to-r from-[#f15a29] to-[#e94e1b] rounded-xl p-4 mt-4 mb-4 shadow-lg">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1 pr-4">
+              <Text className="text-black text-base font-bold mb-1">
+                ¡Hola Daniela!
+              </Text>
+              <Text className="text-black text-sm leading-relaxed">
+                Conoce las promociones{"\n"}especiales que tenemos para ti
+              </Text>
+            </View>
+            <TouchableOpacity className="bg-white px-4 py-2.5 rounded-lg shadow-sm">
+              <Text className="text-[#f15a29] text-sm font-semibold">
+                Ver ofertas
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Mis cuentas */}
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-gray-900 text-lg font-bold">Mis cuentas</Text>
+            <TouchableOpacity className="p-2">
               <Text className="text-gray-600 text-lg">⚙️</Text>
             </TouchableOpacity>
           </View>
 
           {/* Cuenta Nómina */}
-          <View className="bg-white p-3 rounded-lg shadow-sm mb-3">
+          <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-10 h-10 bg-gray-200 rounded-lg items-center justify-center">
-                  <Text className="text-gray-600 text-lg">💳</Text>
+                <View className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center">
+                  <Text className="text-gray-600 text-xl">💳</Text>
                 </View>
                 <View>
-                  <Text className="text-gray-900 text-base mb-0.5">
+                  <Text className="text-gray-900 text-base font-semibold mb-1">
                     Nómina Banorte 2
                   </Text>
-                  <Text className="text-sm text-gray-600">****7355</Text>
+                  <Text className="text-sm text-gray-500">****7355</Text>
                 </View>
               </View>
               <View className="flex-row items-center gap-2">
-                <Text className="text-gray-900">$ 8.02 MN</Text>
-                <Text className="text-gray-400 text-lg">›</Text>
+                <Text className="text-gray-900 font-bold text-base">
+                  $ 8.02 MN
+                </Text>
+                <Text className="text-gray-400 text-xl">›</Text>
               </View>
             </View>
           </View>
+        </View>
+
+        {/* Servicios rápidos */}
+        <View className="mb-4">
+          <Text className="text-gray-900 text-lg font-bold mb-3">
+            Servicios
+          </Text>
 
           {/* Beneficios de mis tarjetas */}
-          <View className="bg-[#f9c74f] p-3 rounded-lg mb-3">
+          <View className="bg-gradient-to-r from-[#f9c74f] to-[#f8b739] p-4 rounded-xl mb-3 shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-10 h-10 bg-white/30 rounded-lg items-center justify-center">
-                  <Text className="text-white text-lg">💳</Text>
+                <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
+                  <Text className="text-white text-xl">🎁</Text>
                 </View>
-                <View>
-                  <Text className="text-gray-900 text-base mb-0.5">
+                <View className="flex-1">
+                  <Text className="text-gray-900 text-base font-semibold mb-1">
                     Beneficios de mis tarjetas
                   </Text>
                   <Text className="text-sm text-gray-700">
@@ -151,19 +199,19 @@ const Home = () => {
                   </Text>
                 </View>
               </View>
-              <Text className="text-gray-700 text-lg">›</Text>
+              <Text className="text-gray-700 text-xl">›</Text>
             </View>
           </View>
 
           {/* Contrata aquí */}
-          <View className="bg-[#f15a29] p-3 rounded-lg mb-4">
+          <View className="bg-gradient-to-r from-[#f15a29] to-[#e94e1b] p-4 rounded-xl shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-10 h-10 bg-white/30 rounded-lg items-center justify-center">
-                  <Text className="text-white text-lg">📄</Text>
+                <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
+                  <Text className="text-white text-xl">�</Text>
                 </View>
-                <View>
-                  <Text className="text-white text-base mb-0.5">
+                <View className="flex-1">
+                  <Text className="text-white text-base font-semibold mb-1">
                     Contrata aquí
                   </Text>
                   <Text className="text-sm text-white/90">
@@ -171,37 +219,45 @@ const Home = () => {
                   </Text>
                 </View>
               </View>
-              <Text className="text-white text-lg">›</Text>
+              <Text className="text-white text-xl">›</Text>
             </View>
           </View>
+        </View>
 
-          {/* Icono Hormi */}
-          <View className="pt-1 items-center">
+        {/* Asistente Hormi */}
+        <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
+          <View className="items-center">
             <TouchableOpacity
-              onPress={() => router.push(`/(root)/(tabs)/hormi`)}
+              onPress={() => router.push("/(root)/(tabs)/hormi")}
+              className="items-center"
             >
-              <View className="w-12 h-12 bg-[#EC0000] rounded-full items-center justify-center shadow-lg">
-                <View className="w-7 h-9">
-                  <View className="w-5 h-6 bg-white rounded-full mx-auto" />
-                  <View className="w-4 h-3 bg-white rounded-full mx-auto mt-1" />
-                  <View className="w-6 h-7 bg-white rounded-full mx-auto mt-1" />
+              <View className="w-16 h-16 bg-[#EC0000] rounded-full items-center justify-center shadow-lg mb-3">
+                <View className="w-10 h-12">
+                  <View className="w-7 h-8 bg-white rounded-full mx-auto" />
+                  <View className="w-5 h-4 bg-white rounded-full mx-auto mt-1" />
+                  <View className="w-8 h-9 bg-white rounded-full mx-auto mt-1" />
                 </View>
               </View>
-              <Text className="text-[10px] text-gray-600 mt-1.5 text-center">
-                Hormi
+              <Text className="text-gray-900 text-base font-semibold mb-1">
+                Hormi - Tu asistente financiero
+              </Text>
+              <Text className="text-gray-600 text-sm text-center">
+                Obtén consejos personalizados y gestiona tus beneficios
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Botón Menú inferior */}
-        <View className="bg-[#5a5e66] py-3">
-          <TouchableOpacity>
-            <Text className="text-white text-center">Menú</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
-    </SafeAreaView>
+
+      {/* Botón Menú inferior fijo */}
+      <View className="bg-[#4a5568] py-4 px-4">
+        <TouchableOpacity>
+          <Text className="text-white text-center font-semibold text-base">
+            Menú
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
