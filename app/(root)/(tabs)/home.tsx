@@ -86,7 +86,7 @@ const Home = () => {
 
           <TouchableOpacity
             className="flex-col items-center gap-2 flex-1"
-            onPress={() => router.push("/(root)/(tabs)/payments")}
+            onPress={() => router.push("/(root)/(tabs)/payServices")}
           >
             <View className="w-8 h-8 items-center justify-center">
               <Text className="text-gray-400 text-lg">🧾</Text>
@@ -107,7 +107,7 @@ const Home = () => {
 
           <TouchableOpacity
             className="flex-col items-center gap-2 flex-1"
-            onPress={() => router.push("/(root)/(tabs)/welcome")}
+            onPress={() => router.push("/(root)/(tabs)/onboarding")}
           >
             <View className="w-8 h-8 bg-[#EC0000] rounded-full items-center justify-center">
               <View className="w-5 h-6">
@@ -232,7 +232,7 @@ const Home = () => {
         <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
           <View className="items-center">
             <TouchableOpacity
-              onPress={() => router.push("/(root)/(tabs)/welcome")}
+              onPress={() => router.push("/(root)/(tabs)/onboarding")}
               className="items-center"
             >
               <View className="w-16 h-16 bg-[#EC0000] rounded-full items-center justify-center shadow-lg mb-3">

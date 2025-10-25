@@ -2,19 +2,9 @@ import { useState } from "react";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 import { ServiceCard } from "@/components/ServiceCart";
 import { PaymentSummary } from "@/components/PaymentSummary";
-import { View } from "@/types/type";
 import CustomHeader from "@/components/CustomHeader";
-
-export interface Service {
-  id: string;
-  name: string;
-  provider: string;
-  amount: number;
-  dueDate: string;
-  accountNumber: string;
-  icon: "lightbulb" | "flame" | "droplet" | "wifi" | "phone";
-  status: "pending" | "overdue" | "paid";
-}
+import { Service } from "@/types/type";
+import { View, Text, Pressable } from "react-native";
 
 const mockServices: Service[] = [
   {
@@ -99,21 +89,26 @@ export default function PaymentServicesView({
     .reduce((sum, service) => sum + service.amount, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-[430px] mx-auto">
+    <View className="min-h-screen bg-gray-50 max-w-[430px] mx-auto">
       {/* Header */}
       <CustomHeader title="Pago de Servicios" showBackButton={true} />
 
-      <main className="px-4 py-4 pb-28">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-gray-900">Pago de Servicios</h1>
-          <button onClick={handleSelectAll} className="text-[#EC0000] text-sm">
-            {selectedServices.length === mockServices.length
-              ? "Deseleccionar"
-              : "Seleccionar todos"}
-          </button>
-        </div>
+      <View className="px-4 py-4 pb-28">
+        <View className="flex items-center justify-between mb-4">
+          <Text className="text-gray-900">Pago de Servicios</Text>
+          <Pressable
+            onPress={handleSelectAll}
+            className="text-[#EC0000] text-sm"
+          >
+            <Text className="text-[#EC0000] text-sm">
+              {selectedServices.length === mockServices.length
+                ? "Deseleccionar"
+                : "Seleccionar todos"}
+            </Text>
+          </Pressable>
+        </View>
 
-        <div className="space-y-3">
+        <View className="space-y-3">
           {mockServices.map((service) => (
             <ServiceCard
               key={service.id}
@@ -122,13 +117,13 @@ export default function PaymentServicesView({
               onToggle={() => handleToggleService(service.id)}
             />
           ))}
-        </div>
-      </main>
+        </View>
+      </View>
 
       <PaymentSummary
         selectedCount={selectedServices.length}
         totalAmount={selectedTotal}
       />
-    </div>
+    </View>
   );
 }

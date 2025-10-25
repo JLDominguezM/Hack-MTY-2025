@@ -42,3 +42,14 @@ export interface Service {
 }
 
 export type View = "login" | "home" | "hormi" | "payments";
+
+export interface Service {
+  id: string;
+  name: string;
+  provider: string;
+  amount: number;
+  dueDate: string;
+  accountNumber: string;
+  icon: "lightbulb" | "flame" | "droplet" | "wifi" | "phone";
+  status: "pending" | "overdue" | "paid";
+}
