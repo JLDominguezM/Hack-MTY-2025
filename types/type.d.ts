@@ -40,3 +40,5 @@ export interface Service {
   icon: "lightbulb" | "flame" | "droplet" | "wifi" | "phone";
   status: "pending" | "overdue" | "paid";
 }
+
+export type View = "login" | "home" | "hormi" | "payments";
