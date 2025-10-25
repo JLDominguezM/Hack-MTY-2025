@@ -68,6 +68,16 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
+        name="payServices"
+        options={{
+          title: "PayServices",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} source={icons.list} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
