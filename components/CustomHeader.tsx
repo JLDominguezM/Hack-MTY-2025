@@ -1,12 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { ArrowLeft, MoreVertical } from "lucide-react-native"; 
+import { View, Text, Pressable, StatusBar, Platform } from "react-native";
+import { ArrowLeft, MoreVertical } from "lucide-react-native";
 import { useRouter } from "expo-router";
 
 interface CustomHeaderProps {
   title: string;
   showBackButton?: boolean;
-  
 }
 
 export default function CustomHeader({
@@ -17,49 +16,28 @@ export default function CustomHeader({
 
   const handleBackPress = () => {
     if (router.canGoBack()) {
-      
       router.back();
     }
-    
   };
 
   return (
-    <View style={styles.headerContainer}>
-      {showBackButton ? (
-        <TouchableOpacity onPress={handleBackPress} style={styles.button}>
-          <ArrowLeft color="white" size={24} />
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.placeholder} /> 
-      )}
-      <Text style={styles.title}>{title}</Text>
-      <TouchableOpacity style={styles.button}>
-        <MoreVertical color="white" size={24} />
-      </TouchableOpacity>
-    </View>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#EC0000" />
+      <View className="bg-[#EC0000] flex-row items-center justify-between px-6 py-8 pt-20">
+        {showBackButton ? (
+          <Pressable onPress={handleBackPress} className="p-2 -ml-2">
+            <ArrowLeft color="white" size={24} />
+          </Pressable>
+        ) : (
+          <View className="w-10" />
+        )}
+        <Text className="text-white text-xl font-bold flex-1 text-center">
+          {title}
+        </Text>
+        <Pressable className="p-2 -mr-2">
+          <MoreVertical color="white" size={24} />
+        </Pressable>
+      </View>
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  headerContainer: {
-    backgroundColor: "#EC0000",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    
-  },
-  button: {
-    padding: 8,
-  },
-  placeholder: {
-    
-    width: 40, 
-  },
-  title: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});

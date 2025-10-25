@@ -1,5 +1,5 @@
-import { ArrowRight } from "lucide-react";
-import { Button } from "@react-navigation/elements";
+import { ArrowRight } from "lucide-react-native";
+import { View, Text, Pressable, Platform } from "react-native";
 
 interface PaymentSummaryProps {
   selectedCount: number;
@@ -11,34 +11,50 @@ export function PaymentSummary({
   totalAmount,
 }: PaymentSummaryProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-2xl max-w-[430px] mx-auto">
-      <div className="px-4 py-4">
+    <View
+      className="absolute bottom-0 left-0 right-0 bg-white shadow-2xl"
+      style={{ paddingBottom: Platform.OS === "ios" ? 34 : 20 }}
+    >
+      <View className="border-t border-gray-200 px-6 py-6">
         {selectedCount > 0 && (
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-600">
-              {selectedCount} {selectedCount === 1 ? "servicio" : "servicios"}
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm text-gray-600">Total:</span>
-              <span className="text-gray-900">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-sm text-gray-600 font-medium">
+              {selectedCount} {selectedCount === 1 ? "servicio" : "servicios"}{" "}
+              seleccionado{selectedCount > 1 ? "s" : ""}
+            </Text>
+            <View className="flex-row items-baseline gap-2">
+              <Text className="text-sm text-gray-600">Total:</Text>
+              <Text className="text-xl font-bold text-gray-900">
                 $
                 {totalAmount.toLocaleString("es-MX", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
-              </span>
-            </div>
-          </div>
+              </Text>
+            </View>
+          </View>
         )}
 
-        <Button
+        <Pressable
           disabled={selectedCount === 0}
-          className="w-full bg-[#EC0000] hover:bg-[#CC0000] active:bg-[#BB0000] text-white py-6 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`w-full py-5 rounded-2xl items-center justify-center flex-row shadow-lg ${
+            selectedCount === 0
+              ? "bg-gray-300"
+              : "bg-[#EC0000] active:bg-[#CC0000]"
+          }`}
         >
-          {selectedCount === 0 ? "Selecciona un servicio" : "Pagar servicios"}
-          {/* {selectedCount > 0 && <ArrowRight className="w-5 h-5 ml-2" />} */}
-        </Button>
-      </div>
-    </div>
+          <Text
+            className={`font-bold text-lg ${
+              selectedCount === 0 ? "text-gray-500" : "text-white"
+            }`}
+          >
+            {selectedCount === 0 ? "Selecciona un servicio" : "Pagar servicios"}
+          </Text>
+          {selectedCount > 0 && (
+            <ArrowRight size={24} color="white" style={{ marginLeft: 8 }} />
+          )}
+        </Pressable>
+      </View>
+    </View>
   );
 }

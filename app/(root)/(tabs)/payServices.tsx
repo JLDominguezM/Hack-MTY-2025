@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { ArrowLeft, MoreVertical } from "lucide-react";
 import { ServiceCard } from "@/components/ServiceCart";
 import { PaymentSummary } from "@/components/PaymentSummary";
 import CustomHeader from "@/components/CustomHeader";
 import { Service } from "@/types/type";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, ScrollView, SafeAreaView } from "react-native";
 
 const mockServices: Service[] = [
   {
@@ -60,12 +59,10 @@ const mockServices: Service[] = [
 ];
 
 interface PaymentServicesViewProps {
-  onNavigate: (view: View) => void;
+  onNavigate?: (view: string) => void;
 }
 
-export default function PaymentServicesView({
-  onNavigate,
-}: PaymentServicesViewProps) {
+function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
   const handleToggleService = (serviceId: string) => {
@@ -89,41 +86,51 @@ export default function PaymentServicesView({
     .reduce((sum, service) => sum + service.amount, 0);
 
   return (
-    <View className="min-h-screen bg-gray-50 max-w-[430px] mx-auto">
-      {/* Header */}
-      <CustomHeader title="Pago de Servicios" showBackButton={true} />
+    <View className="flex-1 bg-gray-50">
+      <View className="flex-1">
+        {/* Header */}
+        <CustomHeader title="Pago de Servicios" showBackButton={true} />
 
-      <View className="px-4 py-4 pb-28">
-        <View className="flex items-center justify-between mb-4">
-          <Text className="text-gray-900">Pago de Servicios</Text>
-          <Pressable
-            onPress={handleSelectAll}
-            className="text-[#EC0000] text-sm"
-          >
-            <Text className="text-[#EC0000] text-sm">
-              {selectedServices.length === mockServices.length
-                ? "Deseleccionar"
-                : "Seleccionar todos"}
-            </Text>
-          </Pressable>
-        </View>
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 140 }}
+        >
+          <View className="px-6 py-6">
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-xl font-bold text-gray-900">Servicios</Text>
+              <Pressable
+                onPress={handleSelectAll}
+                className="px-4 py-2 rounded-lg bg-red-50"
+              >
+                <Text className="text-[#EC0000] text-sm font-semibold">
+                  {selectedServices.length === mockServices.length
+                    ? "Deseleccionar"
+                    : "Seleccionar todos"}
+                </Text>
+              </Pressable>
+            </View>
 
-        <View className="space-y-3">
-          {mockServices.map((service) => (
-            <ServiceCard
-              key={service.id}
-              service={service}
-              isSelected={selectedServices.includes(service.id)}
-              onToggle={() => handleToggleService(service.id)}
-            />
-          ))}
-        </View>
+            <View className="gap-4">
+              {mockServices.map((service) => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  isSelected={selectedServices.includes(service.id)}
+                  onToggle={() => handleToggleService(service.id)}
+                />
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+
+        <PaymentSummary
+          selectedCount={selectedServices.length}
+          totalAmount={selectedTotal}
+        />
       </View>
-
-      <PaymentSummary
-        selectedCount={selectedServices.length}
-        totalAmount={selectedTotal}
-      />
     </View>
   );
 }
+
+export default PaymentServicesView;

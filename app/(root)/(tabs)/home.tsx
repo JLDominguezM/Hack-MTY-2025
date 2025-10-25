@@ -37,7 +37,7 @@ const Home = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header rojo */}
-      <View className="bg-[#EC0000] px-6 pt-12 pb-4">
+      <View className="bg-[#EC0000] px-6 pt-20 pb-4">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-3 flex-1">
             <View className="bg-white rounded-full p-2">

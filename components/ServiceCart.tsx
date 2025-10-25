@@ -5,11 +5,9 @@ import {
   Wifi,
   Phone,
   AlertCircle,
-} from "lucide-react";
-import { Card } from "./ui/card";
-import { Checkbox } from "./ui/checkbox";
-import { Badge } from "./ui/badge";
-import type { Service } from "@/app/(root)/(tabs)/payServices";
+} from "lucide-react-native";
+import { View, Text, Pressable } from "react-native";
+import type { Service } from "@/types/type";
 
 interface ServiceCardProps {
   service: Service;
@@ -26,11 +24,19 @@ const iconMap = {
 };
 
 const iconColors = {
-  lightbulb: "text-yellow-600 bg-yellow-50",
-  flame: "text-orange-600 bg-orange-50",
-  droplet: "text-blue-600 bg-blue-50",
-  wifi: "text-purple-600 bg-purple-50",
-  phone: "text-green-600 bg-green-50",
+  lightbulb: "bg-yellow-50",
+  flame: "bg-orange-50",
+  droplet: "bg-blue-50",
+  wifi: "bg-purple-50",
+  phone: "bg-green-50",
+};
+
+const iconColorValues = {
+  lightbulb: "#D97706",
+  flame: "#EA580C",
+  droplet: "#2563EB",
+  wifi: "#7C3AED",
+  phone: "#059669",
 };
 
 export function ServiceCard({
@@ -47,55 +53,63 @@ export function ServiceCard({
   );
 
   return (
-    <Card
-      className={`p-4 cursor-pointer transition-all active:scale-[0.98] ${
-        isSelected ? "ring-2 ring-[#EC0000] bg-red-50/30" : ""
+    <Pressable
+      onPress={onToggle}
+      className={`p-5 bg-white rounded-2xl border-2 shadow-sm ${
+        isSelected ? "border-[#EC0000] bg-red-50" : "border-gray-100"
       } ${isOverdue ? "border-red-300" : ""}`}
-      onClick={onToggle}
     >
-      <div className="flex items-start gap-3">
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={onToggle}
-          className="mt-1 h-5 w-5"
-          onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        />
+      <View className="flex-row items-start gap-4">
+        {/* Custom Checkbox */}
+        <Pressable
+          onPress={onToggle}
+          className={`w-6 h-6 mt-1 rounded-lg border-2 items-center justify-center ${
+            isSelected
+              ? "bg-[#EC0000] border-[#EC0000]"
+              : "border-gray-300 bg-white"
+          }`}
+        >
+          {isSelected && (
+            <Text className="text-white text-sm font-bold">✓</Text>
+          )}
+        </Pressable>
 
-        <div className={`p-2.5 rounded-xl ${iconColors[service.icon]}`}>
-          <Icon className="w-5 h-5" />
-        </div>
+        <View className={`p-3 rounded-2xl ${iconColors[service.icon]}`}>
+          <Icon size={24} color={iconColorValues[service.icon]} />
+        </View>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <div>
-              <h3 className="text-gray-900">
+        <View className="flex-1 min-w-0">
+          <View className="flex-row items-start justify-between gap-2 mb-3">
+            <View className="flex-1">
+              <Text className="text-gray-900 font-semibold text-lg">
                 {service.name} - {service.provider}
-              </h3>
-              <p className="text-sm text-gray-500">
+              </Text>
+              <Text className="text-sm text-gray-500 mt-1">
                 No. {service.accountNumber}
-              </p>
-            </div>
+              </Text>
+            </View>
             {isOverdue && (
-              <Badge
-                variant="destructive"
-                className="flex items-center gap-1 text-xs px-2 py-0.5"
-              >
-                <AlertCircle className="w-3 h-3" />
-                Vencido
-              </Badge>
+              <View className="bg-red-100 px-3 py-1 rounded-full flex-row items-center gap-1">
+                <AlertCircle size={14} color="#DC2626" />
+                <Text className="text-red-600 text-xs font-semibold">
+                  Vencido
+                </Text>
+              </View>
             )}
-          </div>
+          </View>
 
-          <div className="mt-2 space-y-1.5">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Vencimiento:</span>
-              <span
-                className={`text-sm ${
+          <View className="mt-3 gap-3">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-sm text-gray-600 font-medium">
+                Vencimiento:
+              </Text>
+              <Text
+                className={`text-sm font-semibold ${
                   isOverdue
                     ? "text-red-600"
                     : daysUntilDue <= 3
-                      ? "text-orange-600"
-                      : "text-gray-900"
+                    ? "text-orange-600"
+                    : "text-gray-900"
                 }`}
               >
                 {dueDate.toLocaleDateString("es-MX", {
@@ -104,23 +118,25 @@ export function ServiceCard({
                   year: "2-digit",
                 })}
                 {!isOverdue && daysUntilDue <= 5 && (
-                  <span className="ml-1 text-xs">({daysUntilDue}d)</span>
+                  <Text className="ml-1 text-xs">({daysUntilDue}d)</Text>
                 )}
-              </span>
-            </div>
-            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-              <span className="text-gray-900">Monto:</span>
-              <span className="text-[#EC0000]">
+              </Text>
+            </View>
+            <View className="flex-row justify-between items-center pt-3 border-t border-gray-200">
+              <Text className="text-gray-900 font-semibold text-base">
+                Monto:
+              </Text>
+              <Text className="text-[#EC0000] font-bold text-lg">
                 $
                 {service.amount.toLocaleString("es-MX", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Card>
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Pressable>
   );
 }

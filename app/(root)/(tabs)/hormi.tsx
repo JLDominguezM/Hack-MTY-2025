@@ -6,28 +6,20 @@ import {
   ArrowLeftRight,
   ChevronDown,
   Leaf,
-  ArrowLeft,
-  MoreVertical,
-} from "lucide-react";
+} from "lucide-react-native";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-import { ActivityIndicator, Image } from "react-native";
+  ActivityIndicator,
+  Image,
+  Text,
+  View,
+  TouchableOpacity,
+  Modal,
+  SafeAreaView,
+  FlatList,
+} from "react-native";
 
 import CustomHeader from "@/components/CustomHeader";
+import { images } from "@/constants";
 
 const navigationItems = [
   { icon: Wallet, label: "Mis cuentas", active: false },
@@ -96,7 +88,9 @@ async function askHormi(userMessage: string): Promise<string> {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("API Error:", response.status, errorData);
-      return `Hormi tuvo un problema (${response.status}): ${errorData.error || "Error desconocido del servidor"}`;
+      return `Hormi tuvo un problema (${response.status}): ${
+        errorData.error || "Error desconocido del servidor"
+      }`;
     }
     const data = await response.json();
     return data.ai_response || "Hormi no respondió como esperaba.";
@@ -108,6 +102,7 @@ async function askHormi(userMessage: string): Promise<string> {
 
 export default function HormiView() {
   const [showAdvice, setShowAdvice] = useState(false);
+  const [showBenefits, setShowBenefits] = useState(false);
   const [currentAdvice, setCurrentAdvice] = useState("");
   const [isLoadingAdvice, setIsLoadingAdvice] = useState(false);
   const userPoints = 20;
@@ -129,136 +124,156 @@ export default function HormiView() {
   };
 
   return (
-    <div className="min-h-screen bg-white max-w-[430px] mx-auto flex flex-col">
-      <CustomHeader title="Hormi" showBackButton={true} />
-      {/* <HormiHeader /> */}
-      <SubNavigation />
+    <View className="flex-1 bg-white">
+      <View className="flex-1 max-w self-center w-full">
+        <CustomHeader title="Hormi" showBackButton={true} />
+        <SubNavigation />
 
-      {/* Contenido principal */}
-      <main className="flex-1 flex flex-col items-center justify-between px-6 pt-8 pb-32">
-        <PointsDisplay level={userLevel} points={userPoints} />
-        <HormiMascot onClick={handleHormiClick} />
-        <BenefitsSheet userPoints={userPoints} />
-      </main>
+        {/* Contenido principal */}
+        <View className="flex-1 items-center justify-between px-6 pt-8 pb-32">
+          <PointsDisplay level={userLevel} points={userPoints} />
+          <HormiMascot onClick={handleHormiClick} />
+          <TouchableOpacity
+            className="items-center gap-3"
+            onPress={() => setShowBenefits(true)}
+          >
+            <ChevronDown size={48} color="#EC0000" />
+            <Text className="text-gray-600 text-base">Ver beneficios</Text>
+          </TouchableOpacity>
+        </View>
 
-      <AdviceDialog
-        advice={currentAdvice}
-        isLoading={isLoadingAdvice}
-        isOpen={showAdvice}
-        onClose={() => setShowAdvice(false)}
-      />
-    </div>
+        {/* Modal de consejos */}
+        <Modal
+          visible={showAdvice}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowAdvice(false)}
+        >
+          <View className="flex-1 bg-black/50 justify-center items-center px-5">
+            <View className="bg-white p-6 rounded-2xl min-h-[200px] w-full max-w-sm">
+              <View className="flex-row items-center mb-4">
+                <Text className="text-2xl">🐜</Text>
+                <Text className="text-lg font-bold text-[#EC0000] ml-2">
+                  Consejo de Hormi
+                </Text>
+              </View>
+
+              <View className="min-h-[60px] justify-center items-center mb-4">
+                {isLoadingAdvice ? (
+                  <ActivityIndicator size="large" color="#EC0000" />
+                ) : (
+                  <Text className="text-gray-700 leading-6 text-center">
+                    {currentAdvice}
+                  </Text>
+                )}
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setShowAdvice(false)}
+                className={`bg-[#EC0000] py-3 rounded-lg ${
+                  isLoadingAdvice ? "opacity-70" : ""
+                }`}
+                disabled={isLoadingAdvice}
+              >
+                <Text className="text-white text-center font-medium">
+                  {isLoadingAdvice ? "Pensando..." : "¡Gracias, Hormi!"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Modal de beneficios */}
+        <Modal
+          visible={showBenefits}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowBenefits(false)}
+        >
+          <View className="flex-1 bg-black/50 justify-end">
+            <View className="bg-white rounded-t-3xl max-h-[85%] pt-6">
+              <View className="px-6 pb-4 border-b border-gray-200">
+                <View className="flex-row justify-between items-center mb-2">
+                  <Text className="text-2xl font-bold text-center flex-1">
+                    Beneficios Empresas Verdes
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowBenefits(false)}
+                    className="p-2"
+                  >
+                    <Text className="text-2xl text-gray-500">×</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text className="text-center text-gray-600">
+                  Canjea tus puntos por increíbles beneficios
+                </Text>
+              </View>
+
+              <FlatList
+                data={benefits}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <BenefitCard benefit={item} userPoints={userPoints} />
+                )}
+                contentContainerStyle={{ paddingBottom: 20 }}
+                className="px-4 pt-4"
+              />
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </View>
   );
 }
 
 // --- SUB-COMPONENTES ---
 
-function HormiHeader() {
-  return (
-    <div className="bg-[#EC0000] text-white sticky top-0 z-10 shadow-md">
-      <div className="px-4 py-4">
-        <div className="flex items-center justify-between">
-          <button className="active:bg-white/10 p-2 rounded-lg transition-colors -ml-2">
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h2 className="text-white text-xl font-semibold">Hormi</h2>
-          <button className="active:bg-white/10 p-2 rounded-lg transition-colors -mr-2">
-            <MoreVertical className="w-6 h-6" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function SubNavigation() {
   return (
-    <div className="bg-gray-100 border-b border-gray-300 px-2 py-3">
-      <div className="flex items-center justify-around">
+    <View className="bg-gray-100 border-b border-gray-300 px-2 py-3">
+      <View className="flex-row items-center justify-around">
         {navigationItems.map((item, index) => {
           const Icon = item.icon;
           return (
-            <button
+            <TouchableOpacity
               key={index}
-              className="flex flex-col items-center gap-1 px-3 py-1 text-gray-700 w-1/4"
+              className="items-center gap-1 px-3 py-1 w-1/4"
             >
-              <Icon className="w-6 h-6" />
-              <span className="text-xs text-center">{item.label}</span>
-            </button>
+              <Icon size={24} color="#374151" />
+              <Text className="text-xs text-center text-gray-700">
+                {item.label}
+              </Text>
+            </TouchableOpacity>
           );
         })}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
 function PointsDisplay({ level, points }: { level: string; points: number }) {
   return (
-    <div className="w-full flex items-center justify-between px-2 mb-8">
-      <div className="flex items-center gap-2">
-        <Leaf className="w-8 h-8 text-green-500" />
-        <div>
-          <p className="text-sm text-gray-600">Nivel</p>
-          <p className="text-lg font-semibold text-gray-900">{level}</p>
-        </div>
-      </div>
-      <div className="text-right">
-        <span className="text-5xl font-bold text-gray-900">{points}</span>
-        <span className="text-lg font-semibold text-gray-700 ml-2">PUNTOS</span>
-      </div>
-    </div>
+    <View className="w-full flex-row items-center justify-between px-2 mb-8">
+      <View className="flex-row items-center gap-2">
+        <Leaf size={32} color="#10b981" />
+        <View>
+          <Text className="text-sm text-gray-500">Nivel</Text>
+          <Text className="text-lg font-semibold text-gray-900">{level}</Text>
+        </View>
+      </View>
+      <View className="items-end">
+        <Text className="text-5xl font-bold text-gray-900">{points}</Text>
+        <Text className="text-lg font-semibold text-gray-700 ml-2">PUNTOS</Text>
+      </View>
+    </View>
   );
 }
 
 function HormiMascot({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className="mb-8 active:scale-95 transition-transform"
-    >
-      {/* Usando la ruta absoluta desde la carpeta 'public' */}
-      <img
-        src="/Hormi.png"
-        alt="Mascota Hormi"
-        width={280}
-        height={280}
-        className="object-contain"
-      />
-    </button>
-  );
-}
-
-function BenefitsSheet({ userPoints }: { userPoints: number }) {
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button className="flex flex-col items-center gap-3 active:scale-95 transition-transform">
-          <ChevronDown className="w-12 h-12 text-[#EC0000] animate-bounce" />
-        </button>
-      </SheetTrigger>
-      <SheetContent
-        side="bottom"
-        className="h-[85vh] rounded-t-3xl max-w-[430px] mx-auto bg-white" // Fondo blanco añadido
-      >
-        <SheetHeader className="mb-6">
-          <SheetTitle className="text-2xl text-center">
-            Beneficios Empresas Verdes
-          </SheetTitle>
-          <p className="text-center text-gray-600">
-            Canjea tus puntos por increíbles beneficios
-          </p>
-        </SheetHeader>
-        <div className="space-y-3 overflow-y-auto h-[calc(85vh-120px)] pb-6">
-          {benefits.map((benefit, index) => (
-            <BenefitCard
-              key={index}
-              benefit={benefit}
-              userPoints={userPoints}
-            />
-          ))}
-        </div>
-      </SheetContent>
-    </Sheet>
+    <TouchableOpacity onPress={onClick} className="mb-8">
+      <Image source={images.hormiMascot} className="w-72 h-72" />
+    </TouchableOpacity>
   );
 }
 
@@ -271,77 +286,47 @@ function BenefitCard({
 }) {
   const canRedeem = userPoints >= benefit.points;
   return (
-    <Card className="p-4">
-      <div className="flex items-start gap-4">
-        <div className="text-4xl">{benefit.logo}</div>
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-2">
-            <div>
-              <h3 className="text-gray-900 font-semibold">{benefit.company}</h3>
-              <p className="text-sm text-gray-600">{benefit.description}</p>
-            </div>
-            <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-              🌿 Verde
-            </Badge>
-          </div>
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
-            <div>
-              <p className="text-[#EC0000] font-semibold">{benefit.benefit}</p>
-              <p className="text-sm text-gray-500">{benefit.points} puntos</p>
-            </div>
-            <button
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                canRedeem
-                  ? "bg-[#EC0000] text-white active:bg-[#CC0000]"
-                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
+    <View className="p-4 bg-white border border-gray-200 rounded-lg mb-3 mx-2">
+      <View className="flex-row items-start gap-4">
+        <Text className="text-4xl">{benefit.logo}</Text>
+        <View className="flex-1">
+          <View className="flex-row items-start justify-between mb-2">
+            <View className="flex-1">
+              <Text className="text-gray-900 font-semibold text-base">
+                {benefit.company}
+              </Text>
+              <Text className="text-sm text-gray-600">
+                {benefit.description}
+              </Text>
+            </View>
+            <View className="bg-green-100 px-2 py-1 rounded-md">
+              <Text className="text-green-700 text-xs font-medium">
+                🌿 Verde
+              </Text>
+            </View>
+          </View>
+          <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-gray-200">
+            <View>
+              <Text className="text-[#EC0000] font-semibold">
+                {benefit.benefit}
+              </Text>
+              <Text className="text-sm text-gray-500">
+                {benefit.points} puntos
+              </Text>
+            </View>
+            <TouchableOpacity
+              className={`px-4 py-2 rounded-lg ${
+                canRedeem ? "bg-[#EC0000]" : "bg-gray-200"
               }`}
               disabled={!canRedeem}
             >
-              Canjear
-            </button>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function AdviceDialog({
-  advice,
-  isLoading,
-  isOpen,
-  onClose,
-}: {
-  advice: string;
-  isLoading: boolean;
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[350px] rounded-2xl bg-white">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[#EC0000]">
-            <span className="text-2xl">🐜</span>
-            Consejo de Hormi
-          </DialogTitle>
-        </DialogHeader>
-        <div className="py-4 min-h-[60px] flex items-center justify-center">
-          {/* Muestra ActivityIndicator si está cargando, si no, el consejo */}
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#EC0000" />
-          ) : (
-            <p className="text-gray-700 leading-relaxed">{advice}</p>
-          )}
-        </div>
-        <button
-          onClick={onClose}
-          className="w-full bg-[#EC0000] text-white py-3 rounded-lg active:bg-[#CC0000] transition-colors mt-2"
-          disabled={isLoading} // Deshabilita el botón mientras carga
-        >
-          {isLoading ? "Pensando..." : "¡Gracias, Hormi!"}
-        </button>
-      </DialogContent>
-    </Dialog>
+              <Text className={`${canRedeem ? "text-white" : "text-gray-500"}`}>
+                Canjear
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }
