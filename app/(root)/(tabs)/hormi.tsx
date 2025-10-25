@@ -8,7 +8,7 @@ import {
   Leaf,
   ArrowLeft,
   MoreVertical,
-} from "lucide-react-native";
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -24,9 +24,8 @@ import {
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
-import { ActivityIndicator, Image, Text, View, ViewBase } from "react-native";
+import { ActivityIndicator, Image } from "react-native";
 
 import CustomHeader from "@/components/CustomHeader";
 
@@ -97,9 +96,7 @@ async function askHormi(userMessage: string): Promise<string> {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("API Error:", response.status, errorData);
-      return `Hormi tuvo un problema (${response.status}): ${
-        errorData.error || "Error desconocido del servidor"
-      }`;
+      return `Hormi tuvo un problema (${response.status}): ${errorData.error || "Error desconocido del servidor"}`;
     }
     const data = await response.json();
     return data.ai_response || "Hormi no respondió como esperaba.";
@@ -132,17 +129,17 @@ export default function HormiView() {
   };
 
   return (
-    <View className="min-h-screen bg-white max-w-[430px] mx-auto flex flex-col">
+    <div className="min-h-screen bg-white max-w-[430px] mx-auto flex flex-col">
       <CustomHeader title="Hormi" showBackButton={true} />
       {/* <HormiHeader /> */}
       <SubNavigation />
 
       {/* Contenido principal */}
-      <ViewBase className="flex-1 flex flex-col items-center justify-between px-6 pt-8 pb-32">
+      <main className="flex-1 flex flex-col items-center justify-between px-6 pt-8 pb-32">
         <PointsDisplay level={userLevel} points={userPoints} />
         <HormiMascot onClick={handleHormiClick} />
         <BenefitsSheet userPoints={userPoints} />
-      </ViewBase>
+      </main>
 
       <AdviceDialog
         advice={currentAdvice}
@@ -150,7 +147,7 @@ export default function HormiView() {
         isOpen={showAdvice}
         onClose={() => setShowAdvice(false)}
       />
-    </View>
+    </div>
   );
 }
 
@@ -158,76 +155,76 @@ export default function HormiView() {
 
 function HormiHeader() {
   return (
-    <View className="bg-[#EC0000] text-white sticky top-0 z-10 shadow-md">
-      <View className="px-4 py-4">
-        <View className="flex items-center justify-between">
-          <Button className="active:bg-white/10 p-2 rounded-lg transition-colors -ml-2">
+    <div className="bg-[#EC0000] text-white sticky top-0 z-10 shadow-md">
+      <div className="px-4 py-4">
+        <div className="flex items-center justify-between">
+          <button className="active:bg-white/10 p-2 rounded-lg transition-colors -ml-2">
             <ArrowLeft className="w-6 h-6" />
-          </Button>
-          <Text className="text-white text-xl font-semibold">Hormi</Text>
-          <Button className="active:bg-white/10 p-2 rounded-lg transition-colors -mr-2">
+          </button>
+          <h2 className="text-white text-xl font-semibold">Hormi</h2>
+          <button className="active:bg-white/10 p-2 rounded-lg transition-colors -mr-2">
             <MoreVertical className="w-6 h-6" />
-          </Button>
-        </View>
-      </View>
-    </View>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
 function SubNavigation() {
   return (
-    <View className="bg-gray-100 border-b border-gray-300 px-2 py-3">
-      <View className="flex items-center justify-around">
+    <div className="bg-gray-100 border-b border-gray-300 px-2 py-3">
+      <div className="flex items-center justify-around">
         {navigationItems.map((item, index) => {
           const Icon = item.icon;
           return (
-            <Button
+            <button
               key={index}
               className="flex flex-col items-center gap-1 px-3 py-1 text-gray-700 w-1/4"
             >
               <Icon className="w-6 h-6" />
-              <Text className="text-xs text-center">{item.label}</Text>
-            </Button>
+              <span className="text-xs text-center">{item.label}</span>
+            </button>
           );
         })}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }
 
 function PointsDisplay({ level, points }: { level: string; points: number }) {
   return (
-    <View className="w-full flex items-center justify-between px-2 mb-8">
-      <View className="flex items-center gap-2">
+    <div className="w-full flex items-center justify-between px-2 mb-8">
+      <div className="flex items-center gap-2">
         <Leaf className="w-8 h-8 text-green-500" />
-        <View>
-          <Text className="text-sm text-gray-600">Nivel</Text>
-          <Text className="text-lg font-semibold text-gray-900">{level}</Text>
-        </View>
-      </View>
-      <View className="text-right">
-        <Text className="text-5xl font-bold text-gray-900">{points}</Text>
-        <Text className="text-lg font-semibold text-gray-700 ml-2">PUNTOS</Text>
-      </View>
-    </View>
+        <div>
+          <p className="text-sm text-gray-600">Nivel</p>
+          <p className="text-lg font-semibold text-gray-900">{level}</p>
+        </div>
+      </div>
+      <div className="text-right">
+        <span className="text-5xl font-bold text-gray-900">{points}</span>
+        <span className="text-lg font-semibold text-gray-700 ml-2">PUNTOS</span>
+      </div>
+    </div>
   );
 }
 
 function HormiMascot({ onClick }: { onClick: () => void }) {
   return (
-    <Button
+    <button
       onClick={onClick}
       className="mb-8 active:scale-95 transition-transform"
     >
       {/* Usando la ruta absoluta desde la carpeta 'public' */}
-      <Image
+      <img
         src="/Hormi.png"
         alt="Mascota Hormi"
         width={280}
         height={280}
         className="object-contain"
       />
-    </Button>
+    </button>
   );
 }
 
@@ -235,9 +232,9 @@ function BenefitsSheet({ userPoints }: { userPoints: number }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button className="flex flex-col items-center gap-3 active:scale-95 transition-transform">
+        <button className="flex flex-col items-center gap-3 active:scale-95 transition-transform">
           <ChevronDown className="w-12 h-12 text-[#EC0000] animate-bounce" />
-        </Button>
+        </button>
       </SheetTrigger>
       <SheetContent
         side="bottom"
@@ -251,7 +248,7 @@ function BenefitsSheet({ userPoints }: { userPoints: number }) {
             Canjea tus puntos por increíbles beneficios
           </p>
         </SheetHeader>
-        <View className="space-y-3 overflow-y-auto h-[calc(85vh-120px)] pb-6">
+        <div className="space-y-3 overflow-y-auto h-[calc(85vh-120px)] pb-6">
           {benefits.map((benefit, index) => (
             <BenefitCard
               key={index}
@@ -259,7 +256,7 @@ function BenefitsSheet({ userPoints }: { userPoints: number }) {
               userPoints={userPoints}
             />
           ))}
-        </View>
+        </div>
       </SheetContent>
     </Sheet>
   );
@@ -275,32 +272,24 @@ function BenefitCard({
   const canRedeem = userPoints >= benefit.points;
   return (
     <Card className="p-4">
-      <View className="flex items-start gap-4">
-        <View className="text-4xl">{benefit.logo}</View>
-        <View className="flex-1">
-          <View className="flex items-start justify-between mb-2">
-            <View>
-              <Text className="text-gray-900 font-semibold">
-                {benefit.company}
-              </Text>
-              <Text className="text-sm text-gray-600">
-                {benefit.description}
-              </Text>
-            </View>
+      <div className="flex items-start gap-4">
+        <div className="text-4xl">{benefit.logo}</div>
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h3 className="text-gray-900 font-semibold">{benefit.company}</h3>
+              <p className="text-sm text-gray-600">{benefit.description}</p>
+            </div>
             <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
               🌿 Verde
             </Badge>
-          </View>
-          <View className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
-            <View>
-              <Text className="text-[#EC0000] font-semibold">
-                {benefit.benefit}
-              </Text>
-              <Text className="text-sm text-gray-500">
-                {benefit.points} puntos
-              </Text>
-            </View>
-            <Button
+          </div>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+            <div>
+              <p className="text-[#EC0000] font-semibold">{benefit.benefit}</p>
+              <p className="text-sm text-gray-500">{benefit.points} puntos</p>
+            </div>
+            <button
               className={`px-4 py-2 rounded-lg transition-colors ${
                 canRedeem
                   ? "bg-[#EC0000] text-white active:bg-[#CC0000]"
@@ -309,10 +298,10 @@ function BenefitCard({
               disabled={!canRedeem}
             >
               Canjear
-            </Button>
-          </View>
-        </View>
-      </View>
+            </button>
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }
@@ -337,14 +326,14 @@ function AdviceDialog({
             Consejo de Hormi
           </DialogTitle>
         </DialogHeader>
-        <View className="py-4 min-h-[60px] flex items-center justify-center">
+        <div className="py-4 min-h-[60px] flex items-center justify-center">
           {/* Muestra ActivityIndicator si está cargando, si no, el consejo */}
           {isLoading ? (
             <ActivityIndicator size="large" color="#EC0000" />
           ) : (
             <p className="text-gray-700 leading-relaxed">{advice}</p>
           )}
-        </View>
+        </div>
         <button
           onClick={onClose}
           className="w-full bg-[#EC0000] text-white py-3 rounded-lg active:bg-[#CC0000] transition-colors mt-2"
