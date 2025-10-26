@@ -7,7 +7,6 @@ import {
   View,
   TouchableOpacity,
   Modal,
-  SafeAreaView,
   FlatList,
 } from "react-native";
 

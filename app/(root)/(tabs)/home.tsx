@@ -1,17 +1,18 @@
-import React from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Dimensions,
 } from "react-native";
+import * as Location from "expo-location";
 import { router } from "expo-router";
 import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
 import { useUser, useAuth } from "@clerk/clerk-expo";
-import { useBalanceStore } from "./balance";
+import { useLocationStore } from "@/store";
 
 const { height } = Dimensions.get("window");
 
@@ -35,6 +36,36 @@ const Home = () => {
   const formatted = `${dd}-${mm}-${yyyy} ${hourStr}:${minutes} ${ampm}`;
   const platformLabel =
     Platform.OS === "web" ? "Web" : Platform.OS === "ios" ? "Móvil" : "";
+
+  const { setUserLocation, userLatitude, userLongitude } = useLocationStore();
+  const [hasPermissions, setHasPermission] = useState<boolean>(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          setHasPermission(false);
+          return;
+        }
+
+        setHasPermission(true);
+        let location = await Location.getCurrentPositionAsync({});
+
+        const address = await Location.reverseGeocodeAsync({
+          latitude: location.coords?.latitude!,
+          longitude: location.coords?.longitude!,
+        });
+
+        setUserLocation({
+          latitude: location.coords?.latitude,
+          longitude: location.coords?.longitude,
+        });
+      } catch (error) {
+        console.error("Error getting location:", error);
+      }
+    })();
+  }, []);
 
   const { user } = useUser();
 

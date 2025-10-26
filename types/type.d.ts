@@ -54,3 +54,15 @@ export interface LocationStore {
     longitude: number;
   }) => void;
 }
+
+declare interface LocationStore {
+  userLatitude: number | null;
+  userLongitude: number | null;
+  setUserLocation: ({
+    latitude,
+    longitude,
+  }: {
+    latitude: number;
+    longitude: number;
+  }) => void;
+}
