@@ -10,18 +10,22 @@ import {
   Platform,
   Modal,
 } from "react-native";
-import { ArrowLeft, QrCode } from "lucide-react-native";
+import { QrCode } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useBalanceStore } from "@/components/Balance";
 import CustomHeader from "@/components/CustomHeader";
-import { Button } from "@react-navigation/elements";
+import { useQRStore } from "@/store/qrStore";
 
 export default function TipView() {
   const router = useRouter();
 
   const currentBalance = useBalanceStore((state) => state.accountBalance);
   const decreaseBalance = useBalanceStore((state) => state.decreaseBalance);
+
+  // QR Store
+  const qrData = useQRStore((state) => state.qrData);
+  const clearQRData = useQRStore((state) => state.clearQRData);
 
   const [tipAmount, setTipAmount] = useState("");
   const [showAirdrop, setShowAirdrop] = useState(false);
@@ -61,16 +65,31 @@ export default function TipView() {
         setShowAirdrop(false);
         setRecipientData(null);
         setTipAmount("");
+        clearQRData(); // Limpiar datos del QR
         router.back();
       }, 2500);
     }, 1500);
   };
 
+  // Efecto para manejar navegación al QR scanner
   useEffect(() => {
     if (showQRScanner) {
       router.push("/(root)/(tabs)/cameraPermissions");
+      setShowQRScanner(false); // Reset para evitar navegación múltiple
     }
   }, [showQRScanner, router]);
+
+  // Efecto para recibir datos del QR escaneado
+  useEffect(() => {
+    if (qrData && !recipientData) {
+      setRecipientData(qrData);
+      Alert.alert(
+        "Destinatario Seleccionado ✅",
+        `Enviarás la propina a:\n${qrData.name}\n${qrData.email}`,
+        [{ text: "OK" }]
+      );
+    }
+  }, [qrData, recipientData]);
 
   return (
     <View className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
