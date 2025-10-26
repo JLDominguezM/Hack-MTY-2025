@@ -21,6 +21,6 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-  ],
+, "app/(root)/(tabs)/(citizen-services)/impuestos.tsxx"  ],
   "exclude": ["node_modules"]
 }
