@@ -18,7 +18,7 @@ import { useBalanceStore } from "@/components/Balance";
 const { height } = Dimensions.get("window");
 // Función para obtener user_id de la BD usando clerk_id
 async function getUserIdFromClerkId(clerkId: string) {
-  const API_URL = `http://localhost:8081/api/user?clerkId=${clerkId}`;
+  const API_URL = `/(api)/user?clerkId=${clerkId}`;
 
   try {
     const response = await fetch(API_URL, {
@@ -48,7 +48,7 @@ async function getUserIdFromClerkId(clerkId: string) {
 
 // Función para obtener balance del usuario desde la API
 async function getBalanceFromAPI(user_id: string) {
-  const API_URL = `http://localhost:8081/api/balance?user_id=${user_id}`;
+  const API_URL = `/(api)/balance?user_id=${user_id}`;
 
   try {
     const response = await fetch(API_URL, {
