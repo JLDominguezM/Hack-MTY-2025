@@ -34,9 +34,6 @@ export default function CustomHeader({
         <Text className="text-white text-xl font-bold flex-1 text-center">
           {title}
         </Text>
-        <Pressable className="p-2 -mr-2">
-          <MoreVertical color="white" size={24} />
-        </Pressable>
       </View>
     </>
   );

@@ -1,13 +1,5 @@
-import React, { useState } from "react";
-import {
-  Wallet,
-  TrendingUp,
-  Receipt,
-  ArrowLeftRight,
-  ChevronDown,
-  Leaf,
-} from "lucide-react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState, useEffect } from "react";
+import { ChevronDown, Leaf } from "lucide-react-native";
 import {
   ActivityIndicator,
   Image,
@@ -20,6 +12,8 @@ import {
 
 import CustomHeader from "@/components/CustomHeader";
 import { images } from "@/constants";
+import { fetchAPI } from "@/lib/fetch";
+import { useBalanceStore } from "@/components/Balance";
 
 const benefits = [
   {
@@ -93,13 +87,33 @@ async function askHormi(userMessage: string): Promise<string> {
   }
 }
 
-export default function HormiView() {
+// Move all hooks and state into a component
+export default function HormiScreen() {
   const [showAdvice, setShowAdvice] = useState(false);
   const [showBenefits, setShowBenefits] = useState(false);
   const [currentAdvice, setCurrentAdvice] = useState("");
   const [isLoadingAdvice, setIsLoadingAdvice] = useState(false);
-  const userPoints = 20;
-  const userLevel = "Bronce";
+  const [userPoints, setUserPoints] = useState(0);
+  const [userLevel, setUserLevel] = useState("Bronce");
+  const userId = useBalanceStore((state) => state.userId);
+
+  useEffect(() => {
+    const fetchGreenScore = async () => {
+      if (!userId) return;
+      try {
+        const data = await fetchAPI(
+          `/(api)/consumption?user_id=${userId}&months=6`
+        );
+        if (data && data.green_score) {
+          setUserPoints(data.green_score.total_points || 0);
+          setUserLevel(data.green_score.level || "Bronce");
+        }
+      } catch (err) {
+        console.error("Error fetching green score for Hormi:", err);
+      }
+    };
+    fetchGreenScore();
+  }, [userId]);
 
   const handleHormiClick = async () => {
     if (isLoadingAdvice) return;
@@ -188,7 +202,7 @@ export default function HormiView() {
               <View className="px-6 pb-4 border-b border-gray-200">
                 <View className="flex-row justify-between items-center mb-2">
                   <Text className="text-2xl font-bold text-center flex-1">
-                    Beneficios Empresas Verdes
+                    Beneficios
                   </Text>
                   <TouchableOpacity
                     onPress={() => setShowBenefits(false)}
@@ -230,16 +244,12 @@ function SubNavigation() {
 function PointsDisplay({ level, points }: { level: string; points: number }) {
   return (
     <View className="w-full flex-row items-center justify-between px-2 mb-8">
-      <View className="flex-row items-center gap-2">
-        <Leaf size={32} color="#10b981" />
-        <View>
-          <Text className="text-sm text-gray-500">Nivel</Text>
-          <Text className="text-lg font-semibold text-gray-900">{level}</Text>
-        </View>
-      </View>
       <View className="items-end">
         <Text className="text-5xl font-bold text-gray-900">{points}</Text>
         <Text className="text-lg font-semibold text-gray-700 ml-2">PUNTOS</Text>
+        <Text className="text-base font-semibold text-green-700 mt-1">
+          Nivel: {level}
+        </Text>
       </View>
     </View>
   );
@@ -282,14 +292,9 @@ function BenefitCard({
             </View>
           </View>
           <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-gray-200">
-            <View>
-              <Text className="text-[#EC0000] font-semibold">
-                {benefit.benefit}
-              </Text>
-              <Text className="text-sm text-gray-500">
-                {benefit.points} puntos
-              </Text>
-            </View>
+            <Text className="text-sm text-gray-500">
+              {benefit.points} puntos
+            </Text>
             <TouchableOpacity
               className={`px-4 py-2 rounded-lg ${
                 canRedeem ? "bg-[#EC0000]" : "bg-gray-200"

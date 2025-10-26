@@ -43,15 +43,16 @@ export interface Service {
 
 export type View = "login" | "home" | "hormi" | "payments";
 
-export interface Service {
-  id: string;
-  name: string;
-  provider: string;
-  amount: number;
-  dueDate: string;
-  accountNumber: string;
-  icon: "lightbulb" | "flame" | "droplet" | "wifi" | "phone";
-  status: "pending" | "overdue" | "paid";
+export interface LocationStore {
+  userLatitude: number | null;
+  userLongitude: number | null;
+  setUserLocation: ({
+    latitude,
+    longitude,
+  }: {
+    latitude: number;
+    longitude: number;
+  }) => void;
 }
 
 declare interface LocationStore {

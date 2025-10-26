@@ -1,5 +1,6 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
+import { useCameraPermissions, CameraView } from "expo-camera";
 import {
   View,
   Text,
@@ -11,13 +12,135 @@ import * as Location from "expo-location";
 import { router } from "expo-router";
 import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
-import { useUser, useAuth } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { useLocationStore } from "@/store";
+import { useBalanceStore } from "@/components/Balance";
+import { fetchAPI } from "@/lib/fetch";
 
 const { height } = Dimensions.get("window");
+// Función para obtener user_id de la BD usando clerk_id
+async function getUserIdFromClerkId(clerkId: string) {
+  const API_URL = `/(api)/user?clerkId=${clerkId}`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      console.error("User API Error:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.user) {
+      return data.user.id; // Retorna el user_id de la BD
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Network Error calling User API:", error);
+    return null;
+  }
+}
+
+// Función para obtener balance del usuario desde la API
+async function getBalanceFromAPI(user_id: string) {
+  const API_URL = `/(api)/balance?user_id=${user_id}`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // GET no lleva body
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Balance API Error:", response.status, errorData);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.user) {
+      return {
+        balance: parseFloat(data.user.balance),
+        updated_at: data.user.updated_at,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Network Error calling Balance API:", error);
+    return null;
+  }
+}
 
 const Home = () => {
+  // Permisos de cámara
+  const [permission, requestPermission] = useCameraPermissions();
+  const isPermissionGranted = Boolean(permission?.granted);
+  const [showScanner, setShowScanner] = useState(false);
+  // Mostrar escáner automáticamente si hay permiso
+  useEffect(() => {
+    if (permission && permission.granted) {
+      setShowScanner(true);
+    }
+  }, [permission]);
+  // Handler para escaneo QR (puedes personalizarlo)
+  const handleBarCodeScanned = ({ data }: { data: string }) => {
+    setShowScanner(false);
+    // Aquí puedes navegar o guardar el QR
+    alert(`QR escaneado: ${data}`);
+  };
   const [now, setNow] = React.useState<Date>(new Date());
+  const [balance, setBalance] = useState(0);
+  const [loadingBalance, setLoadingBalance] = useState(false);
+
+  // Usuario de Clerk
+  const { user } = useUser();
+
+  // Hook para cargar balance desde la API
+  useEffect(() => {
+    const loadUserBalance = async () => {
+      if (!user?.id) return;
+
+      setLoadingBalance(true);
+      try {
+        // Primero obtener el user_id de la BD usando clerk_id
+        const userId = await getUserIdFromClerkId(user.id);
+
+        if (!userId) {
+          console.warn(
+            "Could not find user in database with clerk_id:",
+            user.id
+          );
+          return;
+        }
+
+        // Ahora obtener el balance usando el user_id correcto
+        const balanceData = await getBalanceFromAPI(userId);
+
+        if (balanceData) {
+          setBalance(balanceData.balance);
+        }
+      } catch (error) {
+        console.error("Error cargando balance:", error);
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+
+    loadUserBalance();
+  }, [user?.id]);
+
   React.useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000); // actualiza cada minuto
     return () => clearInterval(t);
@@ -67,7 +190,35 @@ const Home = () => {
     })();
   }, []);
 
-  const { user } = useUser();
+  //use balance from DB
+  const accountBalance = useBalanceStore((state) => state.accountBalance);
+  const fetchBalance = useBalanceStore((state) => state.fetchBalance);
+  const isLoadingBalance = useBalanceStore((state) => state.isLoading);
+
+  // Fetch user data and balance
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.emailAddresses?.[0]?.emailAddress) return;
+
+      try {
+        // Get user from database using fetchAPI
+        const userData = await fetchAPI(
+          `/(api)/user?email=${user.emailAddresses[0].emailAddress}`,
+          {
+            method: "GET",
+          }
+        );
+
+        if (userData.success && userData.user) {
+          await fetchBalance(userData.user.id);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   const getDisplayName = () => {
     if (user?.firstName) {
@@ -84,6 +235,33 @@ const Home = () => {
     return "Usuario";
   };
 
+  // Si no hay permiso, pedirlo al inicio
+  if (!isPermissionGranted) {
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#fff",
+        }}
+      >
+        <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 16 }}>
+          Permiso de cámara requerido
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: "#EC0000", padding: 16, borderRadius: 10 }}
+          onPress={requestPermission}
+        >
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>
+            Permitir acceso a la cámara
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  // ...resto del home
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header rojo */}
@@ -114,13 +292,13 @@ const Home = () => {
       </View>
 
       {/* Navegación */}
-      <View className="bg-[#2a2a2a] px-3 py-4">
+      <View className="bg-BanorteGray px-3 py-4">
         <View className="flex-row items-center justify-between">
           <TouchableOpacity className="flex-col items-center gap-2 flex-1">
             <View className="w-8 h-8 bg-white rounded-full items-center justify-center">
-              <Text className="text-[#2a2a2a] text-sm">💰</Text>
+              <Text className="text-BanorteGray text-sm">💰</Text>
             </View>
-            <Text className="text-[9px] text-white text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Mis{"\n"}cuentas
             </Text>
           </TouchableOpacity>
@@ -129,10 +307,10 @@ const Home = () => {
             className="flex-col items-center gap-2 flex-1"
             onPress={() => router.push("/(root)/(tabs)/consumption")}
           >
-            <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-white text-lg">📊</Text>
+            <View className="w-8 h-8 items-center justify-center bg-white rounded-full">
+              <Text className="text-BanorteGray text-sm">📊</Text>
             </View>
-            <Text className="text-[9px] text-white text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Mi{"\n"}Consumo
             </Text>
           </TouchableOpacity>
@@ -141,19 +319,19 @@ const Home = () => {
             className="flex-col items-center gap-2 flex-1"
             onPress={() => router.push("/(root)/(tabs)/payServices")}
           >
-            <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-BanorteGray text-lg">🧾</Text>
+            <View className="w-8 h-8 items-center justify-center bg-white rounded-full">
+              <Text className="text-BanorteGray text-sm">🧾</Text>
             </View>
-            <Text className="text-[9px] text-white text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Pago de{"\n"}servicios
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="flex-col items-center gap-2 flex-1">
-            <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-BanorteGray text-lg">↔️</Text>
+            <View className="w-8 h-8 items-center justify-center bg-white rounded-full">
+              <Text className="text-BanorteGray text-sm">↔️</Text>
             </View>
-            <Text className="text-[9px] text-BanorteGray text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Transferir
             </Text>
           </TouchableOpacity>
@@ -169,7 +347,7 @@ const Home = () => {
                 <View className="w-3 h-3 bg-white rounded-full mx-auto mt-0.5" />
               </View>
             </View>
-            <Text className="text-[9px] text-BanorteGray text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Hormi
             </Text>
           </TouchableOpacity>
@@ -183,7 +361,7 @@ const Home = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Banner promocional */}
-        <View className="bg-gradient-to-r from-BanorteRed to-[#e94e1b] rounded-xl p-4 mt-4 mb-4 shadow-lg">
+        <View className="bg-BanorteGray rounded-xl p-4 mt-4 mb-4 shadow-lg">
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
               <Text className="text-white text-base font-bold mb-1">
@@ -214,8 +392,8 @@ const Home = () => {
           <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center">
-                  <Text className="text-gray-600 text-xl">💳</Text>
+                <View className="w-12 h-12 bg-BanorteGray rounded-xl items-center justify-center">
+                  <Text className="text-BanorteGray text-xl">💳</Text>
                 </View>
                 <View>
                   <Text className="text-gray-900 text-base font-semibold mb-1">
@@ -226,7 +404,9 @@ const Home = () => {
               </View>
               <View className="flex-row items-center gap-2">
                 <Text className="text-gray-900 font-bold text-base">
-                  $ 1702.02 MN
+                  {loadingBalance
+                    ? "Cargando..."
+                    : `$ ${(balance || accountBalance).toFixed(2)} MN`}
                 </Text>
                 <Text className="text-BanorteGray text-xl">›</Text>
               </View>
@@ -236,19 +416,19 @@ const Home = () => {
 
         {/* Servicios rápidos */}
         <View className="mb-4">
-          <Text className="text-gray-900 text-lg font-bold mb-3">
+          <Text className="text-BanorteGray text-lg font-bold mb-3">
             Servicios
           </Text>
 
           {/* Beneficios de mis tarjetas */}
-          <View className="bg-gradient-to-r from-[#f9c74f] to-[#f8b739] p-4 rounded-xl mb-3 shadow-sm">
+          <View className="bg-white p-4 rounded-xl mb-3 shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
+                <View className="w-12 h-12 bg-BanorteGray rounded-xl items-center justify-center">
                   <Text className="text-white text-xl">🎁</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-gray-900 text-base font-semibold mb-1">
+                  <Text className="text-BanorteGray font-bold">
                     Beneficios de mis tarjetas
                   </Text>
                   <Text className="text-sm text-gray-700">
@@ -261,17 +441,17 @@ const Home = () => {
           </View>
 
           {/* Contrata aquí */}
-          <View className="bg-gradient-to-r from-BanorteRed to-[#e94e1b] p-4 rounded-xl shadow-sm">
+          <View className="bg-white p-4 rounded-xl shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
-                  <Text className="text-white text-xl">📃</Text>
+                <View className="w-12 h-12 bg-BanorteGray rounded-xl items-center justify-center">
+                  <Text className="text-black text-xl">📃</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-white text-base font-semibold mb-1">
+                  <Text className="text-black text-base font-semibold mb-1">
                     Contrata aquí
                   </Text>
-                  <Text className="text-sm text-white/90">
+                  <Text className="text-sm text-black">
                     Tarjeta de Crédito, Pagarés y más
                   </Text>
                 </View>
@@ -282,7 +462,7 @@ const Home = () => {
         </View>
 
         {/* Asistente Hormi */}
-        <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
+        <View className="bg-white p-4 rounded-xl shadow-sm border border-BanorteGray mb-4">
           <View className="items-center">
             <TouchableOpacity
               onPress={() => router.push("/(root)/(tabs)/hormi")}

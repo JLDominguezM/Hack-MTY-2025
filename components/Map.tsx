@@ -1,8 +1,23 @@
 import { useLocationStore } from "@/store";
-import MapView, { Marker, PROVIDER_DEFAULT, Region } from "react-native-maps";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View, Alert } from "react-native";
+import { ActivityIndicator, Text, View, Alert, Platform } from "react-native";
 import * as Location from "expo-location";
+
+// Importación condicional para evitar errores en web
+let MapView: any, Marker: any, PROVIDER_DEFAULT: any;
+let Region: any;
+
+if (Platform.OS !== "web") {
+  try {
+    const Maps = require("react-native-maps");
+    MapView = Maps.default;
+    Marker = Maps.Marker;
+    PROVIDER_DEFAULT = Maps.PROVIDER_DEFAULT;
+    Region = Maps.Region;
+  } catch (error) {
+    console.warn("react-native-maps no disponible:", error);
+  }
+}
 
 // Mock markers data
 const mockMarkers = [
@@ -32,12 +47,36 @@ const mockMarkers = [
 const Map = () => {
   const { userLatitude, userLongitude, setUserLocation } = useLocationStore();
   const [loading, setLoading] = useState(true);
-  const [region, setRegion] = useState<Region>({
+  const [region, setRegion] = useState<any>({
     latitude: 25.6866, // Monterrey, México
     longitude: -100.3161,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   });
+
+  // Si estamos en web, mostrar un mock
+  if (Platform.OS === "web") {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#e8f4f8",
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: "#ccc",
+        }}
+      >
+        <Text style={{ color: "#666", fontSize: 18, marginBottom: 10 }}>
+          🗺️ Mapa
+        </Text>
+        <Text style={{ color: "#999", fontSize: 14 }}>
+          Solo disponible en móvil
+        </Text>
+      </View>
+    );
+  }
 
   useEffect(() => {
     getCurrentLocation();
@@ -93,6 +132,28 @@ const Map = () => {
       <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color="#0286FF" />
         <Text className="mt-2 text-gray-600">Obteniendo ubicación...</Text>
+      </View>
+    );
+  }
+
+  // Si no hay MapView disponible, mostrar fallback
+  if (!MapView) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#e8f4f8",
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: "#ccc",
+        }}
+      >
+        <Text style={{ color: "#666", fontSize: 18, marginBottom: 10 }}>
+          🗺️ Mapa
+        </Text>
+        <Text style={{ color: "#999", fontSize: 14 }}>No disponible</Text>
       </View>
     );
   }

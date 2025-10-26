@@ -68,9 +68,7 @@ const SignUp = () => {
         error: "",
         code: "",
       });
-      console.log("Código reenviado exitosamente");
     } catch (err: any) {
-      console.log("Error al reenviar código:", err);
       setVerification({
         ...verification,
         error: "Error al reenviar el código. Intenta nuevamente.",
@@ -80,12 +78,10 @@ const SignUp = () => {
 
   const onVerifyPress = async () => {
     if (!isLoaded) {
-      console.log("Clerk no está cargado aún");
       return;
     }
 
     if (!signUp) {
-      console.log("SignUp object no está disponible");
       setVerification({
         ...verification,
         error: "Error: Sesión de registro no encontrada",
@@ -114,8 +110,6 @@ const SignUp = () => {
       });
 
       if (signUpAttempt.status === "complete") {
-        console.log("Verificación exitosa, redirigiendo al home...");
-
         try {
           await fetchAPI("/(api)/user", {
             method: "POST",
@@ -134,19 +128,10 @@ const SignUp = () => {
 
         await setActive({ session: signUpAttempt.createdSessionId });
 
-        // Redirigir al home usando la ruta directa
-        console.log("Redirigiendo a home...");
         router.replace("/(root)/(tabs)/home");
       } else {
         // Manejar diferentes tipos de estados
         if (signUpAttempt.status === "missing_requirements") {
-          console.log("Faltan requisitos. Estado completo:", signUpAttempt);
-          console.log("Campos faltantes:", signUpAttempt.missingFields);
-          console.log(
-            "Verificaciones requeridas:",
-            signUpAttempt.unverifiedFields
-          );
-
           setVerification({
             ...verification,
             state: "failed",
@@ -155,7 +140,6 @@ const SignUp = () => {
             isVerifying: false,
           });
         } else {
-          console.log("SignUp attempt failed:", signUpAttempt.status);
           setVerification({
             ...verification,
             state: "failed",
@@ -178,7 +162,6 @@ const SignUp = () => {
         error: errorMessage,
         isVerifying: false,
       });
-      console.log("Verification error:", errorMessage);
     }
   };
 
