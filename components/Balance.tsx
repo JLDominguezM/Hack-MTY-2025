@@ -3,6 +3,7 @@ import { create } from "zustand";
 interface BalanceState {
   accountBalance: number;
   decreaseBalance: (amount: number) => void;
+
   // You could add increaseBalance, setBalance, etc. later if needed
 }
 

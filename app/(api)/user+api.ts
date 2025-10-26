@@ -82,16 +82,17 @@ export async function POST(request: Request) {
   }
 }
 
-// GET - Obtener usuario por clerk_id o email
+// GET - Obtener usuario por clerk_id,  email, o qr_id
 export async function GET(request: Request) {
   const sql = neon(`${process.env.DATABASE_URL}`);
   const url = new URL(request.url);
   const clerkId = url.searchParams.get("clerkId");
   const email = url.searchParams.get("email");
+  const qr_id = url.searchParams.get("qr_id");
 
-  if (!clerkId && !email) {
+  if (!clerkId && !email && !qr_id) {
     return Response.json(
-      { error: "Missing clerkId or email parameter" },
+      { error: "Missing clerkId, email o qr_id parameter" },
       { status: 400 }
     );
   }
@@ -104,6 +105,12 @@ export async function GET(request: Request) {
         SELECT id, name, email, clerk_id, qr_id, created_at 
         FROM users 
         WHERE clerk_id = ${clerkId}
+      `;
+    } else if (qr_id) {
+      user = await sql`
+        SELECT id, name, email, clerk_id, qr_id, created_at 
+        FROM users 
+        WHERE qr_id = ${qr_id}
       `;
     } else {
       user = await sql`
