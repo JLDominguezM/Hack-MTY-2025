@@ -4,7 +4,6 @@ import crypto from "crypto";
 function generateQRId(): string {
   // Generar un UUID v4 único para el QR
   const uuid = crypto.randomUUID();
-  console.log("Generated QR ID:", uuid); // Para debugging
   return uuid;
 }
 
@@ -18,15 +17,12 @@ export async function POST(request: Request) {
 
   try {
     const qrId = generateQRId();
-    console.log("About to insert user with QR ID:", qrId); // Para debugging
 
     const response = await sql`
       INSERT INTO users (name, email, clerk_id, qr_id) 
       VALUES (${name}, ${email}, ${clerkId}, ${qrId})
       RETURNING id, name, email, clerk_id, qr_id, created_at
     `;
-
-    console.log("Insert response:", response[0]); // Para debugging
 
     return new Response(
       JSON.stringify({
@@ -156,7 +152,6 @@ export async function PUT(request: Request) {
 
     if (regenerateQR || !existingUser[0].qr_id) {
       const newQrId = generateQRId();
-      console.log("Updating QR ID for user:", clerkId, "New QR ID:", newQrId);
 
       updatedUser = await sql`
         UPDATE users 
