@@ -101,8 +101,6 @@ const Home = () => {
     alert(`QR escaneado: ${data}`);
   };
   const [now, setNow] = React.useState<Date>(new Date());
-  const [balance, setBalance] = useState(0);
-  const [loadingBalance, setLoadingBalance] = useState(false);
 
   // Usuario de Clerk
   const { user } = useUser();
@@ -112,7 +110,6 @@ const Home = () => {
     const loadUserBalance = async () => {
       if (!user?.id) return;
 
-      setLoadingBalance(true);
       try {
         // Primero obtener el user_id de la BD usando clerk_id
         const userId = await getUserIdFromClerkId(user.id);
@@ -129,12 +126,10 @@ const Home = () => {
         const balanceData = await getBalanceFromAPI(userId);
 
         if (balanceData) {
-          setBalance(balanceData.balance);
+          //setBalance(balanceData.balance);
         }
       } catch (error) {
         console.error("Error cargando balance:", error);
-      } finally {
-        setLoadingBalance(false);
       }
     };
 
@@ -404,9 +399,7 @@ const Home = () => {
               </View>
               <View className="flex-row items-center gap-2">
                 <Text className="text-gray-900 font-bold text-base">
-                  {loadingBalance
-                    ? "Cargando..."
-                    : `$ ${(balance || accountBalance).toFixed(2)} MN`}
+                  {isLoadingBalance ? "Cargando..." : `$ ${accountBalance.toFixed(2)} MN`}
                 </Text>
                 <Text className="text-BanorteGray text-xl">›</Text>
               </View>
