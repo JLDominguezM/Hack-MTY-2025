@@ -2,8 +2,9 @@ import { useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import qrScan from "./qrScan";
 
-export default function index() {
+export default function cameraPermissions() {
   const [permission, requestPermission] = useCameraPermissions();
 
   const isPermissionGranted = Boolean(permission?.granted);
