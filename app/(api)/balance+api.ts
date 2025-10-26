@@ -14,28 +14,28 @@ export async function GET(request: Request) {
   }
 
   try {
-    let user;
+    let balance;
 
     if (user_id) {
-      user = await sql`
+      balance = await sql`
         SELECT balance, updated_at
         FROM account_balances ab
         WHERE ab.user_id = ${user_id} 
       `;
     } else {
-      user = await sql`
+      balance = await sql`
         SELECT *
         FROM account_balances
       `;
     }
 
-    if (user.length === 0) {
+    if (balance.length === 0) {
       return Response.json({ error: "User not found" }, { status: 404 });
     }
 
     return Response.json({
       success: true,
-      user: user[0],
+      balance: balance,
     });
   } catch (err: any) {
     return Response.json(
