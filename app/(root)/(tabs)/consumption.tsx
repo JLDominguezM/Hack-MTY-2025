@@ -1,5 +1,5 @@
 import CustomHeader from "@/components/CustomHeader";
-import Map from "@/components/Map";
+// import Map from "@/components/Map";
 import ConsumptionCharts from "@/components/ConsumptionCharts";
 import { Text, View, ScrollView } from "react-native";
 
@@ -30,7 +30,7 @@ const Consumption = () => {
               alignSelf: "center",
             }}
           >
-            <Map />
+            {/* <Map /> */}
           </View>
         </View>
 

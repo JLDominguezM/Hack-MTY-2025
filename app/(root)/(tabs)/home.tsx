@@ -13,6 +13,7 @@ import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useLocationStore } from "@/store";
+import { useBalanceStore } from "./balance";
 
 const { height } = Dimensions.get("window");
 
