@@ -12,6 +12,10 @@ export default function Layout() {
       <Stack.Screen name="send-tip" options={{ headerShown: false }} />
       <Stack.Screen name="recieve-tip" options={{ headerShown: false }} />
       <Stack.Screen name="citizen-services" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="(citizen-services)"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }
