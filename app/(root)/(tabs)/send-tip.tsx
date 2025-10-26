@@ -7,8 +7,6 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Platform,
-  Modal,
 } from "react-native";
 import { QrCode } from "lucide-react-native";
 import { useRouter } from "expo-router";
@@ -23,7 +21,6 @@ export default function TipView() {
   const currentBalance = useBalanceStore((state) => state.accountBalance);
   const decreaseBalance = useBalanceStore((state) => state.decreaseBalance);
 
-  // QR Store
   const qrData = useQRStore((state) => state.qrData);
   const clearQRData = useQRStore((state) => state.clearQRData);
 
@@ -48,27 +45,58 @@ export default function TipView() {
     );
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (isDisabled) return;
 
     setSending(true);
 
-    setTimeout(() => {
-      decreaseBalance(tipValue);
-      setSending(false);
+    try {
+      // TODO: Obtener el ID del usuario actual (del que envía)
+      // Por ahora usamos un ID mock - debes reemplazarlo con el ID real del usuario logueado
+      const currentUserId = "user_sender_id"; // Reemplazar con Clerk user ID o el ID real
 
-      setTimeout(() => {
+      const response = await fetch(`http://localhost:8081/api/transfer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fromUserId: currentUserId,
+          toUserId: recipientData.id,
+          amount: tipValue,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Actualizar balance local solo si la transferencia fue exitosa
+        decreaseBalance(tipValue);
+
         Alert.alert(
-          "¡Propina Enviada!",
-          `Se han enviado $${tipValue.toFixed(2)} MN a ${recipientData.name}.`
+          "¡Propina Enviada! ✅",
+          `Se han enviado $${tipValue.toFixed(2)} MN a ${recipientData.name}.\n\nTu nuevo balance: $${result.transfer.senderNewBalance.toFixed(2)} MN`
         );
-        setShowAirdrop(false);
+
         setRecipientData(null);
         setTipAmount("");
-        clearQRData(); // Limpiar datos del QR
+        clearQRData();
         router.back();
-      }, 2500);
-    }, 1500);
+      } else {
+        Alert.alert(
+          "Error en la transferencia ❌",
+          result.error || "No se pudo completar la transferencia"
+        );
+      }
+    } catch (error) {
+      console.error("Error sending tip:", error);
+      Alert.alert(
+        "Error de conexión ❌",
+        "No se pudo conectar con el servidor. Verifica tu conexión."
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   // Efecto para manejar navegación al QR scanner
@@ -183,7 +211,7 @@ export default function TipView() {
               <View className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg overflow-hidden">
                 <TextInput
                   keyboardType="numeric"
-                  value={tipAmount}
+                  value={tipAmount} //cantidad a donar a la persona
                   onChangeText={setTipAmount}
                   placeholder="0.00"
                   placeholderTextColor="#9CA3AF"

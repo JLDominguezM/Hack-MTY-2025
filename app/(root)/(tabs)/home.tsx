@@ -11,15 +11,125 @@ import * as Location from "expo-location";
 import { router } from "expo-router";
 import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
-import { useUser, useAuth } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { useLocationStore } from "@/store";
 import { useBalanceStore } from "@/components/Balance";
 import { fetchAPI } from "@/lib/fetch";
 
 const { height } = Dimensions.get("window");
+// Función para obtener user_id de la BD usando clerk_id
+async function getUserIdFromClerkId(clerkId: string) {
+  const API_URL = `/(api)/user?clerkId=${clerkId}`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      console.error("User API Error:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.user) {
+      return data.user.id; // Retorna el user_id de la BD
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Network Error calling User API:", error);
+    return null;
+  }
+}
+
+// Función para obtener balance del usuario desde la API
+async function getBalanceFromAPI(user_id: string) {
+  const API_URL = `/(api)/balance?user_id=${user_id}`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // GET no lleva body
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Balance API Error:", response.status, errorData);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.user) {
+      return {
+        balance: parseFloat(data.user.balance),
+        updated_at: data.user.updated_at,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Network Error calling Balance API:", error);
+    return null;
+  }
+}
 
 const Home = () => {
   const [now, setNow] = React.useState<Date>(new Date());
+  const [balance, setBalance] = useState(0);
+  const [loadingBalance, setLoadingBalance] = useState(false);
+
+  // Usuario de Clerk
+  const { user } = useUser();
+
+  // Hook para cargar balance desde la API
+  useEffect(() => {
+    const loadUserBalance = async () => {
+      if (!user?.id) return;
+
+      setLoadingBalance(true);
+      try {
+        // Primero obtener el user_id de la BD usando clerk_id
+        const userId = await getUserIdFromClerkId(user.id);
+
+        if (!userId) {
+          console.warn(
+            "Could not find user in database with clerk_id:",
+            user.id
+          );
+          return;
+        }
+
+        console.log("Found database user_id:", userId);
+
+        // Ahora obtener el balance usando el user_id correcto
+        const balanceData = await getBalanceFromAPI(userId);
+
+        if (balanceData) {
+          setBalance(balanceData.balance);
+          console.log("Balance cargado desde API:", balanceData.balance);
+        } else {
+          console.log("No se pudo cargar el balance desde la API");
+          // Usar balance del store como fallback
+        }
+      } catch (error) {
+        console.error("Error cargando balance:", error);
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+
+    loadUserBalance();
+  }, [user?.id]);
+
   React.useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000); // actualiza cada minuto
     return () => clearInterval(t);
@@ -69,8 +179,7 @@ const Home = () => {
     })();
   }, []);
 
-  const { user } = useUser();
-
+  //use balance from DB
   const accountBalance = useBalanceStore((state) => state.accountBalance);
   const fetchBalance = useBalanceStore((state) => state.fetchBalance);
   const isLoadingBalance = useBalanceStore((state) => state.isLoading);
@@ -259,7 +368,9 @@ const Home = () => {
               </View>
               <View className="flex-row items-center gap-2">
                 <Text className="text-gray-900 font-bold text-base">
-                  $ {accountBalance.toFixed(2)} MN
+                  {loadingBalance
+                    ? "Cargando..."
+                    : `$ ${(balance || accountBalance).toFixed(2)} MN`}
                 </Text>
                 <Text className="text-BanorteGray text-xl">›</Text>
               </View>

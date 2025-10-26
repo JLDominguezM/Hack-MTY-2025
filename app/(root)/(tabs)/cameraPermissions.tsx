@@ -19,6 +19,7 @@ export default function cameraPermissions() {
       <Pressable
         style={[styleSheet.mainBtn, styleSheet.btnGreen]}
         onPress={requestPermission}
+        disabled={isPermissionGranted} //only show when permission if needed
       >
         <Text>Request Permission</Text>
       </Pressable>
