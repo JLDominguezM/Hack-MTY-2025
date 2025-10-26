@@ -1,136 +1,227 @@
-const mockServices = [
-  {
-    id: "S001",
-    name: "Impuesto Vehicular Anual",
-    amount: 150.0,
-    currency: "USD",
-  },
-  {
-    id: "S002",
-    name: "Tasa de Residuos Sólidos",
-    amount: 25.5,
-    currency: "USD",
-  },
-  {
-    id: "S003",
-    name: "Permiso de Construcción Menor",
-    amount: 50.0,
-    currency: "USD",
-  },
-];
+import { neon } from "@neondatabase/serverless";
+import crypto from "crypto";
 
-interface Payment {
-  payment_id: string;
-  user_id: string;
-  service_id: string;
-  amount: number;
-  status: "pending" | "completed" | "failed";
-  created_at: string;
-  paid_at?: string;
-  transaction_id?: string;
-  reference_id?: string;
-}
-const payments: { [key: string]: Payment } = {};
-const generateUniqueId = (pref = "p") =>
-  `${pref}_${Math.random().toString(36).slice(2, 9)}`;
-
+const generateTransactionId = () => {
+  return `TXN-${Date.now()}-${crypto
+    .randomBytes(4)
+    .toString("hex")
+    .toUpperCase()}`;
+};
 
 /**
- * Endpoint: GET /api/gov/services
- * Obtiene la lista de servicios gubernamentales disponibles.
+ * GET /api/payments
+ *
+ * Query params:
+ * - user_id: ID del usuario para obtener su historial de pagos
+ * - transaction_id: ID de transacción específica
  */
 export async function GET(request: Request) {
+  const sql = neon(`${process.env.DATABASE_URL}`);
   const url = new URL(request.url);
-  const path = url.pathname;
+  const user_id = url.searchParams.get("user_id");
+  const transaction_id = url.searchParams.get("transaction_id");
 
-  if (path.endsWith("/services")) {
-    return Response.json({ services: mockServices });
+  try {
+    // Obtener pago específico por transaction_id
+    if (transaction_id) {
+      const payment = await sql`
+        SELECT 
+          sp.id,
+          sp.transaction_id,
+          sp.amount,
+          sp.payment_method,
+          sp.status,
+          sp.paid_at,
+          sp.metadata,
+          us.reference_number,
+          cs.name as service_name,
+          cs.category,
+          u.name as user_name,
+          u.email as user_email
+        FROM service_payments sp
+        JOIN user_services us ON sp.user_service_id = us.id
+        JOIN citizen_services cs ON us.service_id = cs.id
+        JOIN users u ON sp.user_id = u.id
+        WHERE sp.transaction_id = ${transaction_id}
+      `;
+
+      if (payment.length === 0) {
+        return Response.json({ error: "Payment not found" }, { status: 404 });
+      }
+
+      return Response.json({
+        success: true,
+        payment: payment[0],
+      });
+    }
+
+    // Obtener historial de pagos del usuario
+    if (user_id) {
+      const payments = await sql`
+        SELECT 
+          sp.id,
+          sp.transaction_id,
+          sp.amount,
+          sp.payment_method,
+          sp.status,
+          sp.paid_at,
+          us.reference_number,
+          cs.name as service_name,
+          cs.category
+        FROM service_payments sp
+        JOIN user_services us ON sp.user_service_id = us.id
+        JOIN citizen_services cs ON us.service_id = cs.id
+        WHERE sp.user_id = ${user_id}
+        ORDER BY sp.paid_at DESC
+        LIMIT 50
+      `;
+
+      return Response.json({
+        success: true,
+        payments,
+        count: payments.length,
+      });
+    }
+
+    return Response.json(
+      { error: "user_id or transaction_id is required" },
+      { status: 400 }
+    );
+  } catch (err: any) {
+    console.error("Error in GET /api/payments:", err);
+    return Response.json(
+      { error: "Database error", details: err.message },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/payments
+ * Procesa el pago de un servicio ciudadano
+ *
+ * Body:
+ * {
+ *   "user_id": 1,
+ *   "user_service_id": 5,
+ *   "amount": 800.00,
+ *   "payment_method": "balance" // o "card", "transfer"
+ * }
+ */
+export async function POST(request: Request) {
+  const sql = neon(`${process.env.DATABASE_URL}`);
+  const body = await request.json();
+  const { user_id, user_service_id, amount, payment_method = "balance" } = body;
+
+  if (!user_id || !user_service_id || !amount) {
+    return Response.json(
+      { error: "user_id, user_service_id, and amount are required" },
+      { status: 400 }
+    );
   }
 
-  if (path.endsWith("/payments/status")) {
-    const payment_id = url.searchParams.get("id");
-    const payment = payments[payment_id || ""];
+  try {
+    // Verificar que el servicio existe y está pendiente
+    const userService = await sql`
+      SELECT 
+        us.id,
+        us.user_id,
+        us.amount,
+        us.status,
+        cs.name as service_name,
+        cs.category
+      FROM user_services us
+      JOIN citizen_services cs ON us.service_id = cs.id
+      WHERE us.id = ${user_service_id} AND us.user_id = ${user_id}
+    `;
 
-    if (!payment) {
+    if (userService.length === 0) {
       return Response.json(
-        { error: "Pago no encontrado (Mock)" },
+        { error: "User service not found" },
         { status: 404 }
       );
     }
-    return Response.json({
-      status: payment.status,
-      transaction_id: payment.transaction_id,
-    });
-  }
 
-  return Response.json(
-    { error: "Ruta de pago GET no reconocida" },
-    { status: 404 }
-  );
-}
-
-/**
- * Endpoint: POST /api/gov/payments/create O /api/gov/payments/confirm
- * Maneja la creación y confirmación de pagos.
- */
-export async function POST(request: Request) {
-  const url = new URL(request.url);
-  const path = url.pathname;
-  const body = await request.json();
-
-  if (path.endsWith("/payments/create")) {
-    const { user_id, service_id, amount, reference_id } = body;
-
-    if (!user_id || !service_id || !amount) {
+    if (userService[0].status !== "pending") {
       return Response.json(
-        { error: "Campos requeridos (user_id, service_id, amount)" },
+        { error: "Service is not pending payment" },
         { status: 400 }
       );
     }
 
-    const payment_id = generateUniqueId("pay");
-    payments[payment_id] = {
-      payment_id,
-      user_id,
-      service_id,
-      amount: Number(amount),
-      status: "pending",
-      created_at: new Date().toISOString(),
-      reference_id,
-    };
+    // Verificar que el monto coincide
+    if (parseFloat(userService[0].amount) !== parseFloat(amount)) {
+      return Response.json({ error: "Amount mismatch" }, { status: 400 });
+    }
+
+    // Si el método de pago es balance, verificar que hay fondos suficientes
+    if (payment_method === "balance") {
+      const balance = await sql`
+        SELECT balance 
+        FROM account_balances 
+        WHERE user_id = ${user_id}
+      `;
+
+      if (balance.length === 0) {
+        return Response.json(
+          { error: "User balance not found" },
+          { status: 404 }
+        );
+      }
+
+      if (parseFloat(balance[0].balance) < parseFloat(amount)) {
+        return Response.json(
+          { error: "Insufficient balance" },
+          { status: 400 }
+        );
+      }
+
+      // Descontar del balance
+      await sql`
+        UPDATE account_balances
+        SET balance = balance - ${amount}, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ${user_id}
+      `;
+    }
+
+    // Generar ID de transacción
+    const transaction_id = generateTransactionId();
+
+    // Registrar el pago
+    const payment = await sql`
+      INSERT INTO service_payments 
+        (user_service_id, user_id, amount, payment_method, transaction_id, status, paid_at)
+      VALUES 
+        (${user_service_id}, ${user_id}, ${amount}, ${payment_method}, ${transaction_id}, 'completed', CURRENT_TIMESTAMP)
+      RETURNING *
+    `;
+
+    // Actualizar el estado del servicio a 'paid'
+    await sql`
+      UPDATE user_services
+      SET status = 'paid', updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${user_service_id}
+    `;
 
     return Response.json(
       {
-        payment_id,
-        status: "pending",
-        message: "Pago creado.",
-        tts_audio_url: `https://elevenlabs.com/mock/audio/${payment_id}`,
+        success: true,
+        message: "Payment processed successfully",
+        payment: {
+          transaction_id: payment[0].transaction_id,
+          amount: payment[0].amount,
+          service_name: userService[0].service_name,
+          paid_at: payment[0].paid_at,
+          status: payment[0].status,
+        },
       },
       { status: 201 }
     );
+  } catch (err: any) {
+    console.error("Error in POST /api/payments:", err);
+    return Response.json(
+      { error: "Database error", details: err.message },
+      { status: 500 }
+    );
   }
-
-  if (path.endsWith("/payments/confirm")) {
-    const { payment_id } = body;
-    const payment = payments[payment_id];
-
-    if (!payment) {
-      return Response.json({ error: "Pago no encontrado" }, { status: 404 });
-    }
-
-    payment.status = "completed";
-    payment.transaction_id = generateUniqueId("txn");
-    payment.paid_at = new Date().toISOString();
-
-    return Response.json({
-      success: true,
-      status: "completed",
-      receipt_url: `http://localhost:3000/api/gov/payments/receipt?id=${payment_id}`,
-    });
-  }
-
-  return Response.json(
-    { error: "Ruta de pago POST no reconocida" },
-    { status: 404 }
-  );
 }

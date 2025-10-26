@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ServiceCard } from "@/components/ServiceCart";
 import { PaymentSummary } from "@/components/PaymentSummary";
 import CustomHeader from "@/components/CustomHeader";
@@ -10,62 +10,12 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useBalanceStore } from "../../../components/Balance";
 import { useRouter } from "expo-router";
-
-const mockServices: Service[] = [
-  {
-    id: "1",
-    name: "Luz",
-    provider: "CFE",
-    amount: 1250.5,
-    dueDate: "2025-10-28",
-    accountNumber: "1234567890",
-    icon: "lightbulb",
-    status: "pending",
-  },
-  {
-    id: "2",
-    name: "Gas",
-    provider: "Gas Natural",
-    amount: 850.0,
-    dueDate: "2025-10-30",
-    accountNumber: "0987654321",
-    icon: "flame",
-    status: "pending",
-  },
-  {
-    id: "3",
-    name: "Agua",
-    provider: "SACMEX",
-    amount: 320.75,
-    dueDate: "2025-11-05",
-    accountNumber: "5556667777",
-    icon: "droplet",
-    status: "pending",
-  },
-  {
-    id: "4",
-    name: "Internet",
-    provider: "Telmex",
-    amount: 599.0,
-    dueDate: "2025-11-01",
-    accountNumber: "4445556666",
-    icon: "wifi",
-    status: "pending",
-  },
-  {
-    id: "5",
-    name: "Teléfono",
-    provider: "Telcel",
-    amount: 399.0,
-    dueDate: "2025-10-26",
-    accountNumber: "5551234567",
-    icon: "phone",
-    status: "overdue",
-  },
-];
+import { fetchAPI } from "@/lib/fetch";
+import { useUser } from "@clerk/clerk-expo";
 
 interface PaymentServicesViewProps {
   onNavigate?: (view: string) => void;
@@ -73,9 +23,59 @@ interface PaymentServicesViewProps {
 
 function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
   const router = useRouter();
+  const { user } = useUser();
   const accountBalance = useBalanceStore((state) => state.accountBalance);
-  const decreaseBalance = useBalanceStore((state) => state.decreaseBalance);
+  const fetchBalance = useBalanceStore((state) => state.fetchBalance);
+  const userId = useBalanceStore((state) => state.userId);
+
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPaying, setIsPaying] = useState(false);
+
+  // Fetch services from database
+  useEffect(() => {
+    const fetchServices = async () => {
+      if (!userId) return;
+
+      setIsLoading(true);
+      try {
+        const data = await fetchAPI(
+          `/(api)/payment-services?user_id=${userId}`,
+          {
+            method: "GET",
+          }
+        );
+
+        if (data.success && data.services) {
+          // Transform database format to Service type
+          const transformedServices: Service[] = data.services
+            .filter(
+              (s: any) => s.status === "pending" || s.status === "overdue"
+            )
+            .map((s: any) => ({
+              id: s.id.toString(),
+              name: s.name,
+              provider: s.provider,
+              amount: parseFloat(s.amount),
+              dueDate: s.due_date,
+              accountNumber: s.account_number,
+              icon: s.icon,
+              status: s.status,
+            }));
+
+          setServices(transformedServices);
+        }
+      } catch (error) {
+        console.error("Error fetching services:", error);
+        Alert.alert("Error", "No se pudieron cargar los servicios");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, [userId]);
 
   const handleToggleService = (serviceId: string) => {
     setSelectedServices((prev) =>
@@ -86,14 +86,14 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
   };
 
   const handleSelectAll = () => {
-    if (selectedServices.length === mockServices.length) {
+    if (selectedServices.length === services.length) {
       setSelectedServices([]);
     } else {
-      setSelectedServices(mockServices.map((s) => s.id));
+      setSelectedServices(services.map((s: Service) => s.id));
     }
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (selectedTotal <= 0) {
       Alert.alert(
         "Error",
@@ -112,23 +112,70 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
       return;
     }
 
-    decreaseBalance(selectedTotal);
+    if (!userId) {
+      Alert.alert("Error", "No se pudo identificar el usuario");
+      return;
+    }
 
-    Alert.alert(
-      "Pago Exitoso",
-      `Se han pagado $${selectedTotal.toFixed(2)} MN.`
-    );
+    setIsPaying(true);
 
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/home");
+    try {
+      // Llamar al API para procesar el pago
+      const serviceIds = selectedServices.map((id) => parseInt(id));
+
+      const data = await fetchAPI("/(api)/payment-services", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          service_ids: serviceIds,
+          total_amount: selectedTotal,
+        }),
+      });
+
+      if (data.success) {
+        // Actualizar balance desde el servidor
+        await fetchBalance(userId);
+
+        // Eliminar servicios pagados de la lista
+        setServices((prev) =>
+          prev.filter((service) => !selectedServices.includes(service.id))
+        );
+
+        setSelectedServices([]);
+
+        Alert.alert(
+          "Pago Exitoso",
+          `Se han pagado $${selectedTotal.toFixed(
+            2
+          )} MN.\nNuevo saldo: $${data.new_balance.toFixed(2)} MN`,
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/home");
+                }
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      Alert.alert(
+        "Error",
+        "No se pudo procesar el pago. Por favor intenta de nuevo."
+      );
+    } finally {
+      setIsPaying(false);
     }
   };
 
-  const selectedTotal = mockServices
-    .filter((service) => selectedServices.includes(service.id))
-    .reduce((sum, service) => sum + service.amount, 0);
+  const selectedTotal = services
+    .filter((service: Service) => selectedServices.includes(service.id))
+    .reduce((sum: number, service: Service) => sum + service.amount, 0);
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -147,9 +194,10 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
               <Pressable
                 onPress={handleSelectAll}
                 className="px-4 py-2 rounded-lg bg-red-50"
+                disabled={isLoading}
               >
                 <Text className="text-[#EC0000] text-sm font-semibold">
-                  {selectedServices.length === mockServices.length
+                  {selectedServices.length === services.length
                     ? "Deseleccionar"
                     : "Seleccionar todos"}
                 </Text>
@@ -185,16 +233,35 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
               </Text>
             </Pressable>
 
-            <View className="gap-4">
-              {mockServices.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  isSelected={selectedServices.includes(service.id)}
-                  onToggle={() => handleToggleService(service.id)}
-                />
-              ))}
-            </View>
+            {isLoading ? (
+              <View className="py-20 items-center">
+                <ActivityIndicator size="large" color="#EC0000" />
+                <Text className="text-gray-500 mt-4">
+                  Cargando servicios...
+                </Text>
+              </View>
+            ) : services.length === 0 ? (
+              <View className="py-20 items-center">
+                <Text className="text-6xl mb-4">✅</Text>
+                <Text className="text-xl font-bold text-gray-900 mb-2">
+                  ¡Todo al día!
+                </Text>
+                <Text className="text-gray-500 text-center px-8">
+                  No tienes servicios pendientes de pago
+                </Text>
+              </View>
+            ) : (
+              <View className="gap-4">
+                {services.map((service: Service) => (
+                  <ServiceCard
+                    key={service.id}
+                    service={service}
+                    isSelected={selectedServices.includes(service.id)}
+                    onToggle={() => handleToggleService(service.id)}
+                  />
+                ))}
+              </View>
+            )}
           </View>
         </ScrollView>
 

@@ -14,6 +14,7 @@ const { Platform } = require("react-native");
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useLocationStore } from "@/store";
 import { useBalanceStore } from "@/components/Balance";
+import { fetchAPI } from "@/lib/fetch";
 
 const { height } = Dimensions.get("window");
 
@@ -71,6 +72,36 @@ const Home = () => {
   const { user } = useUser();
 
   const accountBalance = useBalanceStore((state) => state.accountBalance);
+  const fetchBalance = useBalanceStore((state) => state.fetchBalance);
+  const isLoadingBalance = useBalanceStore((state) => state.isLoading);
+
+  // Fetch user data and balance
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.emailAddresses?.[0]?.emailAddress) return;
+
+      try {
+        // Get user from database using fetchAPI
+        const userData = await fetchAPI(
+          `/(api)/user?email=${user.emailAddresses[0].emailAddress}`,
+          {
+            method: "GET",
+          }
+        );
+
+        if (userData.success && userData.user) {
+          console.log("User data fetched:", userData.user);
+          // Fetch balance using user_id
+          await fetchBalance(userData.user.id);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
   const getDisplayName = () => {
     if (user?.firstName) {
       return user.firstName;
