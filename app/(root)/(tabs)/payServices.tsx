@@ -4,6 +4,8 @@ import { PaymentSummary } from "@/components/PaymentSummary";
 import CustomHeader from "@/components/CustomHeader";
 import { Service } from "@/types/type";
 import { View, Text, Pressable, ScrollView, SafeAreaView } from "react-native";
+import { useBalanceStore } from "./balance";
+import { useRouter } from "expo-router";
 
 const mockServices: Service[] = [
   {
@@ -58,11 +60,14 @@ const mockServices: Service[] = [
   },
 ];
 
+
 interface PaymentServicesViewProps {
   onNavigate?: (view: string) => void;
 }
 
 function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
+  const router = useRouter();
+  const decreaseBalance = useBalanceStore((state) => state.decreaseBalance);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
   const handleToggleService = (serviceId: string) => {
@@ -80,6 +85,28 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
       setSelectedServices(mockServices.map((s) => s.id));
     }
   };
+
+  const handlePayment = () => {
+    if (selectedTotal <= 0) return;
+
+    console.log(`Simulating payment of $${selectedTotal.toFixed(2)} MN...`);
+    // --- (Aquí iría la lógica real de pago) ---
+
+    // Actualiza el estado global usando la función del store
+    decreaseBalance(selectedTotal); 
+
+    // Opcional: Muestra mensaje de éxito
+    alert('¡Pago realizado con éxito!'); 
+
+    // Navega hacia atrás
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/home'); // O '/' si tu home es index.tsx
+    }
+  };
+
+    
 
   const selectedTotal = mockServices
     .filter((service) => selectedServices.includes(service.id))
@@ -127,6 +154,7 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
         <PaymentSummary
           selectedCount={selectedServices.length}
           totalAmount={selectedTotal}
+          onPayPress={handlePayment}
         />
       </View>
     </View>

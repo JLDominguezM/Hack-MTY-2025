@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
 import { useUser, useAuth } from "@clerk/clerk-expo";
+import { useBalanceStore } from "./balance";
 
 const { height } = Dimensions.get("window");
 
@@ -36,6 +37,8 @@ const Home = () => {
     Platform.OS === "web" ? "Web" : Platform.OS === "ios" ? "Móvil" : "";
 
   const { user } = useUser();
+
+  const accountBalance = useBalanceStore((state) => state.accountBalance);
 
   const getDisplayName = () => {
     if (user?.firstName) {
@@ -194,7 +197,7 @@ const Home = () => {
               </View>
               <View className="flex-row items-center gap-2">
                 <Text className="text-gray-900 font-bold text-base">
-                  $ 1702.02 MN
+                  $ {accountBalance.toFixed(2)} MN
                 </Text>
                 <Text className="text-BanorteGray text-xl">›</Text>
               </View>
