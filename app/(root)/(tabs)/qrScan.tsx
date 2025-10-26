@@ -14,49 +14,58 @@ import { ArrowLeft } from "lucide-react-native";
 import { useState } from "react";
 import { useQRStore } from "@/store/qrStore";
 
-// Función para validar QR en la BD (mock)
+// Función para validar QR UUID en la BD
 const validateQRInDatabase = async (qrCode: string) => {
-  // Simular llamada a BD
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    // Verificar si es una URL de Expo (ignorar)
+    if (qrCode.startsWith("exp://") || qrCode.startsWith("http")) {
+      console.log("QR detectado es una URL, no un UUID de usuario");
+      return null;
+    }
 
-  // BD Mock - aquí iría tu llamada real a la BD
-  const mockDatabase = [
-    {
-      id: "1",
-      qrId: "usr_12345",
-      name: "Juan Pérez",
-      email: "juan.perez@email.com",
-    },
-    {
-      id: "2",
-      qrId: "usr_67890",
-      name: "María García",
-      email: "maria.garcia@email.com",
-    },
-    {
-      id: "3",
-      qrId: "demo_qr",
-      name: "Usuario Demo",
-      email: "demo@email.com",
-    },
-  ];
+    // Verificar que sea un UUID válido (formato: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(qrCode)) {
+      console.log("QR no es un UUID válido:", qrCode);
+      return null;
+    }
 
-  // Buscar por QR exacto o por contener el código
-  const user = mockDatabase.find(
-    (u) => u.qrId === qrCode || qrCode.includes(u.qrId)
-  );
+    console.log("Validando UUID:", qrCode);
 
-  if (user) {
-    return user;
+    // Simular delay de API
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const API_URL = `/(api)/user?clerkId=${qrCode}`;
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.error("User API Error:", response.status);
+        return null;
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        return data.user.id; // Retorna el user_id de la BD
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Network Error calling User API:", error);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error validando QR:", error);
+    return null;
   }
-
-  // Si no se encuentra, crear usuario mock con el QR escaneado
-  return {
-    id: "temp_" + Date.now(),
-    qrId: qrCode.substring(0, 16),
-    name: "Usuario QR",
-    email: "usuario@email.com",
-  };
 };
 
 export default function qrScan() {
@@ -64,6 +73,7 @@ export default function qrScan() {
   const [loading, setLoading] = useState(false);
   const setQRData = useQRStore((state) => state.setQRData);
 
+  // console.log("Usuario encontrado:", user);
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
     if (scanned || loading) return;
 
@@ -81,8 +91,8 @@ export default function qrScan() {
         setQRData(userData);
 
         Alert.alert(
-          "QR Válido ✅",
-          `Destinatario encontrado:\n${userData.name}\n${userData.email}`,
+          "✅ Destinatario Encontrado",
+          `${userData.name}\n${userData.email}\n\nUUID: ${userData.qrId}`,
           [
             {
               text: "Cancelar",
@@ -95,27 +105,52 @@ export default function qrScan() {
             {
               text: "Confirmar",
               onPress: () => {
-                // Regresar a send-tip
-                router.back();
-                router.back(); // Para regresar también de cameraPermissions
+                // Navegar de vuelta a send-tip de forma segura
+                try {
+                  router.dismiss(); // Cierra todos los modales
+                  router.push("/(root)/(tabs)/send-tip");
+                } catch (error) {
+                  console.log("Error navegando:", error);
+                  // Fallback: intentar con replace
+                  router.replace("/(root)/(tabs)/send-tip");
+                }
               },
             },
           ]
         );
       } else {
-        Alert.alert(
-          "QR No Válido ❌",
-          "Este código QR no está registrado en el sistema.",
-          [
-            {
-              text: "Reintentar",
-              onPress: () => {
-                setScanned(false);
-                setLoading(false);
-              },
+        // Determinar el tipo de QR escaneado para dar mejor feedback
+        let errorMessage = "Este código QR no está registrado en el sistema.";
+
+        if (data.startsWith("exp://") || data.startsWith("http")) {
+          errorMessage =
+            "Este es un QR de Expo/URL, no de un usuario.\n\nNecesitas escanear el QR personal de otro usuario.";
+        } else if (
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            data
+          )
+        ) {
+          errorMessage =
+            "El QR escaneado no tiene formato válido de UUID.\n\nDebe ser algo como: 9873cf23-0aae-4ab5-9631-34186e6eb787";
+        }
+
+        Alert.alert("❌ QR No Válido", errorMessage, [
+          {
+            text: "Ver QR Completo",
+            onPress: () => {
+              Alert.alert("QR Escaneado", data);
+              setScanned(false);
+              setLoading(false);
             },
-          ]
-        );
+          },
+          {
+            text: "Reintentar",
+            onPress: () => {
+              setScanned(false);
+              setLoading(false);
+            },
+          },
+        ]);
       }
     } catch (error) {
       console.error("Error validando QR:", error);
