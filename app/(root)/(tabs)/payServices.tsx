@@ -112,8 +112,6 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
       return;
     }
 
-    console.log(`Simulating payment of $${selectedTotal.toFixed(2)} MN...`);
-
     decreaseBalance(selectedTotal);
 
     Alert.alert(
