@@ -71,10 +71,10 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
   // Preparar datos para gráfica de pastel (distribución actual, solo pagos reales del mes actual)
   const preparePieChartData = () => {
     const colors: any = {
-      luz: "#FCD34D",
-      agua: "#3B82F6",
-      gas: "#EF4444",
-      telefono: "#8B5CF6",
+      luz: "#FFD166", // Amarillo cálido brillante
+      agua: "#06B6D4", // Azul turquesa moderno
+      gas: "#F87171", // Rojo coral suave
+      telefono: "#A78BFA", // Violeta lavanda elegante
     };
 
     const icons: any = {
@@ -91,7 +91,7 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
     // currentMonthPayments es un array de objetos: { service_type, total_paid }
     const pieData = currentMonthPayments
       .map((item: any) => {
-        const serviceName = item.service_type;
+        const serviceName = item.service_type.toLowerCase();
         const totalPaid = parseFloat(item.total_paid);
         return {
           name: `${icons[serviceName] || "📊"} ${
@@ -99,8 +99,8 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
           }`,
           population: totalPaid,
           color: colors[serviceName] || "#6B7280",
-          legendFontColor: "#374151",
-          legendFontSize: 12,
+          legendFontColor: "#1F2937",
+          legendFontSize: 13,
         };
       })
       .filter((item: any) => item.population > 0); // Filtrar servicios sin pagos
