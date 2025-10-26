@@ -74,7 +74,6 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
       luz: "#FCD34D",
       agua: "#3B82F6",
       gas: "#EF4444",
-      internet: "#10B981",
       telefono: "#8B5CF6",
     };
 
@@ -82,7 +81,6 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
       luz: "💡",
       agua: "💧",
       gas: "🔥",
-      internet: "📡",
       telefono: "📱",
     };
 
@@ -176,6 +174,7 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
             paddingLeft="15"
             center={[10, 0]}
             absolute
+            hasLegend={true}
           />
           <View
             style={{
@@ -275,7 +274,8 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
         </View>
 
         {/* Gráficas de línea por servicio */}
-        {Object.keys(by_service).map((serviceName) => {
+        {["luz", "agua", "gas"].map((serviceName) => {
+          if (!by_service[serviceName]) return null;
           const lineData = prepareLineChartData(
             by_service[serviceName],
             serviceName
@@ -286,8 +286,6 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
             luz: "💡",
             agua: "💧",
             gas: "🔥",
-            internet: "📡",
-            telefono: "📱",
           };
 
           return (

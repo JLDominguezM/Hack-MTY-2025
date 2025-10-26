@@ -75,7 +75,11 @@ export default function TipView() {
 
         Alert.alert(
           "¡Propina Enviada! ✅",
-          `Se han enviado $${tipValue.toFixed(2)} MN a ${recipientData.name}.\n\nTu nuevo balance: $${result.transfer.senderNewBalance.toFixed(2)} MN`
+          `Se han enviado $${tipValue.toFixed(2)} MN a ${
+            recipientData.name
+          }.\n\nTu nuevo balance: $${result.transfer.senderNewBalance.toFixed(
+            2
+          )} MN`
         );
 
         setRecipientData(null);
@@ -102,7 +106,7 @@ export default function TipView() {
   // Efecto para manejar navegación al QR scanner
   useEffect(() => {
     if (showQRScanner) {
-      router.push("/(root)/(tabs)/cameraPermissions");
+      router.push("/(root)/(tabs)/scanCode");
       setShowQRScanner(false); // Reset para evitar navegación múltiple
     }
   }, [showQRScanner, router]);
