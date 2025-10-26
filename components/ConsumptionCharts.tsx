@@ -273,7 +273,6 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
           })}
         </View>
 
-        {/* Gráficas de línea por servicio */}
         {["luz", "agua", "gas"].map((serviceName) => {
           if (!by_service[serviceName]) return null;
           const lineData = prepareLineChartData(

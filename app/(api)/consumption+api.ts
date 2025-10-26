@@ -111,14 +111,6 @@ export async function GET(request: Request) {
         vs_previous_month: parseFloat(item.vs_previous_month || 0),
       });
     });
-
-    console.log(`📊 Consumption API - User ${user_id}:`, {
-      consumptionRecords: consumptionHistory.length,
-      services: Object.keys(byService),
-      greenScore: greenScore.length > 0 ? greenScore[0].total_points : 0,
-      achievements: recentAchievements.length,
-    });
-
     return Response.json({
       success: true,
       consumption: {

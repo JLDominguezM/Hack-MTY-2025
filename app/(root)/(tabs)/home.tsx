@@ -125,17 +125,11 @@ const Home = () => {
           return;
         }
 
-        console.log("Found database user_id:", userId);
-
         // Ahora obtener el balance usando el user_id correcto
         const balanceData = await getBalanceFromAPI(userId);
 
         if (balanceData) {
           setBalance(balanceData.balance);
-          console.log("Balance cargado desde API:", balanceData.balance);
-        } else {
-          console.log("No se pudo cargar el balance desde la API");
-          // Usar balance del store como fallback
         }
       } catch (error) {
         console.error("Error cargando balance:", error);
@@ -216,8 +210,6 @@ const Home = () => {
         );
 
         if (userData.success && userData.user) {
-          console.log("User data fetched:", userData.user);
-          // Fetch balance using user_id
           await fetchBalance(userData.user.id);
         }
       } catch (error) {

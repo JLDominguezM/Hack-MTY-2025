@@ -18,18 +18,14 @@ import CustomHeader from "@/components/CustomHeader";
 const validateQRInDatabase = async (qrCode: string) => {
   try {
     if (qrCode.startsWith("exp://") || qrCode.startsWith("http")) {
-      console.log("QR detectado es una URL, no un UUID de usuario");
       return null;
     }
 
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(qrCode)) {
-      console.log("QR no es un UUID válido:", qrCode);
       return null;
     }
-
-    console.log("Validando UUID:", qrCode);
 
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -137,8 +133,6 @@ export default function QRScan() {
     setLoading(true);
 
     try {
-      console.log("QR escaneado:", data);
-
       const userData = await validateQRInDatabase(data);
 
       if (userData) {
@@ -163,7 +157,6 @@ export default function QRScan() {
                   router.dismiss();
                   router.push("/(root)/(tabs)/send-tip");
                 } catch (error) {
-                  console.log("Error navegando:", error);
                   router.replace("/(root)/(tabs)/send-tip");
                 }
               },
