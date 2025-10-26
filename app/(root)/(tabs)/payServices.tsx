@@ -3,8 +3,16 @@ import { ServiceCard } from "@/components/ServiceCart";
 import { PaymentSummary } from "@/components/PaymentSummary";
 import CustomHeader from "@/components/CustomHeader";
 import { Service } from "@/types/type";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  SafeAreaView,
+  Alert,
+} from "react-native";
+import { useBalanceStore } from "./balance";
+import { useRouter } from "expo-router";
 
 const mockServices: Service[] = [
   {
@@ -59,7 +67,6 @@ const mockServices: Service[] = [
   },
 ];
 
-
 interface PaymentServicesViewProps {
   onNavigate?: (view: string) => void;
 }
@@ -87,7 +94,6 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
   };
 
   const handlePayment = () => {
-    
     if (selectedTotal <= 0) {
       Alert.alert(
         "Error",
@@ -96,20 +102,18 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
       return;
     }
 
-    
     if (selectedTotal > accountBalance) {
       Alert.alert(
         "Saldo Insuficiente",
-        `No tienes suficiente saldo ($${accountBalance.toFixed(2)} MN) para cubrir el total de $${selectedTotal.toFixed(2)} MN.`
+        `No tienes suficiente saldo ($${accountBalance.toFixed(
+          2
+        )} MN) para cubrir el total de $${selectedTotal.toFixed(2)} MN.`
       );
-      return; 
+      return;
     }
-    
 
     console.log(`Simulating payment of $${selectedTotal.toFixed(2)} MN...`);
-    
 
-    
     decreaseBalance(selectedTotal);
 
     Alert.alert(
@@ -117,15 +121,12 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
       `Se han pagado $${selectedTotal.toFixed(2)} MN.`
     );
 
-    
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace("/home"); 
+      router.replace("/home");
     }
   };
-
-    
 
   const selectedTotal = mockServices
     .filter((service) => selectedServices.includes(service.id))
@@ -156,6 +157,35 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
                 </Text>
               </Pressable>
             </View>
+            <Pressable
+              onPress={() => router.push("/(root)/(tabs)/recieve-tip")}
+              className="w-full py-4 rounded-xl shadow-md active:scale-[0.98] transition-transform mb-4 flex flex-row items-center justify-center gap-2 bg-BanorteGray"
+            >
+              <Text className="text-2xl">💰</Text>
+              <Text className="text-lg text-white font-semibold">
+                Recibir Propina
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/(root)/(tabs)/send-tip")}
+              className="w-full py-4 rounded-xl shadow-md active:scale-[0.98] transition-transform mb-4 flex flex-row items-center justify-center gap-2 bg-BanorteRed"
+            >
+              <Text className="text-2xl">💰</Text>
+              <Text className="text-lg text-white font-semibold">
+                Enviar Propina
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/(root)/(tabs)/citizen-services")}
+              className="w-full py-4 rounded-xl shadow-md active:scale-[0.98] transition-transform mb-4 flex flex-row items-center justify-center gap-2 bg-Alert"
+            >
+              <Text className="text-2xl">🏛️</Text>
+              <Text className="text-lg text-white font-semibold">
+                Servicios Ciudadanos
+              </Text>
+            </Pressable>
 
             <View className="gap-4">
               {mockServices.map((service) => (

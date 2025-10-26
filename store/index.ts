@@ -17,3 +17,6 @@ export const useLocationStore = create<LocationStore>((set) => ({
     }));
   },
 }));
+
+// Re-export user store
+export { useUserStore } from "./userStore";
