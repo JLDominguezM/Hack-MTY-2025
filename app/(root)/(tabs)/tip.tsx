@@ -62,7 +62,6 @@ export default function TipView() {
         showsVerticalScrollIndicator={false}
       >
         <View className="w-full max-w-md mx-auto">
-          {/* Header con ícono mejorado */}
           <View className="mb-10 items-center">
             <View className="relative mb-6">
               <LinearGradient
@@ -78,17 +77,17 @@ export default function TipView() {
               <View className="absolute -bottom-2 -left-2 w-6 h-6 bg-orange-400 rounded-full opacity-60"></View>
             </View>
 
-            <Text className="text-gray-900 text-2xl font-bold mb-2 text-center">
+            <Text className="text-BanorteGray text-2xl font-bold mb-2 text-center">
               ¿Cuánto quieres enviar?
             </Text>
-            <Text className="text-gray-600 text-base text-center px-4">
+            <Text className="text-BanorteGray text-base text-center px-4">
               Ingresa el monto de la propina que deseas dar
             </Text>
           </View>
 
           {/* Input de monto mejorado */}
           <View className="mb-8">
-            <Text className="text-gray-800 text-base font-semibold mb-3">
+            <Text className="text-BanorteGray text-base font-semibold mb-3">
               Monto de la propina
             </Text>
             <View className="relative">
@@ -99,7 +98,7 @@ export default function TipView() {
                   onChangeText={setTipAmount}
                   placeholder="0.00"
                   placeholderTextColor="#9CA3AF"
-                  className="text-3xl text-center bg-white text-gray-900 font-bold"
+                  className="text-3xl text-center bg-white text-BanorteGray font-bold"
                   style={{
                     paddingVertical: 20,
                     paddingLeft: 50,
@@ -122,7 +121,7 @@ export default function TipView() {
 
           {/* Montos sugeridos mejorados */}
           <View className="mb-8">
-            <Text className="text-gray-800 text-base font-semibold mb-4">
+            <Text className="text-BanorteGray text-base font-semibold mb-4">
               Montos sugeridos
             </Text>
             <View className="flex-row justify-between gap-3">
@@ -130,16 +129,9 @@ export default function TipView() {
                 <TouchableOpacity
                   key={amount}
                   onPress={() => setTipAmount(amount.toFixed(2))}
-                  className="flex-1 bg-white border-2 border-gray-200 rounded-xl py-4 items-center shadow-md active:border-blue-400 active:bg-blue-50"
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 3,
-                  }}
+                  className="flex-1 rounded-xl py-4 items-center shadow-md active:border-blue-400 active:bg-blue-50"
                 >
-                  <Text className="text-gray-800 font-bold text-lg">
+                  <Text className="text-BanorteGray font-bold text-lg">
                     ${amount.toFixed(2)}
                   </Text>
                 </TouchableOpacity>
@@ -150,17 +142,17 @@ export default function TipView() {
           {/* Información de saldo mejorada */}
           <View className="bg-white rounded-2xl p-6 mb-6 shadow-lg border border-gray-100">
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-gray-600 text-base">Saldo actual:</Text>
-              <Text className="text-gray-900 font-bold text-xl">
+              <Text className="text-BanorteGray text-base">Saldo actual:</Text>
+              <Text className="text-BanorteGray font-bold text-xl">
                 ${currentBalance.toFixed(2)} MN
               </Text>
             </View>
             <View className="h-px bg-gray-200 mb-4"></View>
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-600 text-base">Te quedaría:</Text>
+              <Text className="text-BanorteGray text-base">Te quedaría:</Text>
               <Text
                 className={`font-bold text-xl ${
-                  isInvalid ? "text-red-600" : "text-green-600"
+                  isInvalid ? "text-BanorteRed" : "text-Sucess"
                 }`}
               >
                 ${remainingBalance.toFixed(2)} MN
@@ -191,15 +183,15 @@ export default function TipView() {
             disabled={isDisabled}
             className={`w-full py-5 rounded-2xl shadow-lg flex-row items-center justify-center ${
               isDisabled
-                ? "bg-gray-300"
-                : "bg-gradient-to-r from-red-500 to-red-600 active:from-red-600 active:to-red-700"
+                ? "bg-gray-400 opacity-70"
+                : "bg-green-500 active:bg-green-600"
             }`}
             style={{
-              shadowColor: isDisabled ? "#000" : "#EF4444",
+              shadowColor: isDisabled ? "#9CA3AF" : "#10B981",
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: isDisabled ? 0.1 : 0.3,
+              shadowOpacity: isDisabled ? 0.2 : 0.4,
               shadowRadius: 8,
-              elevation: isDisabled ? 2 : 6,
+              elevation: isDisabled ? 3 : 8,
             }}
           >
             {sending ? (
