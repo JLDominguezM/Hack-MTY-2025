@@ -399,7 +399,9 @@ const Home = () => {
               </View>
               <View className="flex-row items-center gap-2">
                 <Text className="text-gray-900 font-bold text-base">
-                  {isLoadingBalance ? "Cargando..." : `$ ${accountBalance.toFixed(2)} MN`}
+                  {isLoadingBalance
+                    ? "Cargando..."
+                    : `$ ${accountBalance.toFixed(2)} MN`}
                 </Text>
                 <Text className="text-BanorteGray text-xl">›</Text>
               </View>
