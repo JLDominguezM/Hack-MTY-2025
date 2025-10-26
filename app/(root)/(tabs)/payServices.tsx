@@ -3,7 +3,7 @@ import { ServiceCard } from "@/components/ServiceCart";
 import { PaymentSummary } from "@/components/PaymentSummary";
 import CustomHeader from "@/components/CustomHeader";
 import { Service } from "@/types/type";
-import { View, Text, Pressable, ScrollView, SafeAreaView } from "react-native";
+import { View, Text, Pressable, ScrollView, SafeAreaView, Alert } from "react-native";
 import { useBalanceStore } from "./balance";
 import { useRouter } from "expo-router";
 
@@ -67,6 +67,7 @@ interface PaymentServicesViewProps {
 
 function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
   const router = useRouter();
+  const accountBalance = useBalanceStore((state) => state.accountBalance);
   const decreaseBalance = useBalanceStore((state) => state.decreaseBalance);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
@@ -87,22 +88,41 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
   };
 
   const handlePayment = () => {
-    if (selectedTotal <= 0) return;
+    
+    if (selectedTotal <= 0) {
+      Alert.alert(
+        "Error",
+        "Debes seleccionar al menos un servicio para pagar."
+      );
+      return;
+    }
+
+    
+    if (selectedTotal > accountBalance) {
+      Alert.alert(
+        "Saldo Insuficiente",
+        `No tienes suficiente saldo ($${accountBalance.toFixed(2)} MN) para cubrir el total de $${selectedTotal.toFixed(2)} MN.`
+      );
+      return; 
+    }
+    
 
     console.log(`Simulating payment of $${selectedTotal.toFixed(2)} MN...`);
-    // --- (Aquí iría la lógica real de pago) ---
+    
 
-    // Actualiza el estado global usando la función del store
-    decreaseBalance(selectedTotal); 
+    
+    decreaseBalance(selectedTotal);
 
-    // Opcional: Muestra mensaje de éxito
-    alert('¡Pago realizado con éxito!'); 
+    Alert.alert(
+      "Pago Exitoso",
+      `Se han pagado $${selectedTotal.toFixed(2)} MN.`
+    );
 
-    // Navega hacia atrás
+    
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace('/home'); // O '/' si tu home es index.tsx
+      router.replace("/home"); 
     }
   };
 
