@@ -44,3 +44,55 @@ export async function GET(request: Request) {
     );
   }
 }
+
+//POST - Set a certain user balance
+export async function POST(request: Request) {
+  const sql = neon(`${process.env.DATABASE_URL}`);
+  const { user_id, newBalance } = await request.json();
+
+  if (!newBalance) {
+    return Response.json(
+      { error: "Missing required balance" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const response = await sql`
+      UPDATE account_balances 
+      SET balance = ${newBalance}
+      WHERE user_id = ${user_id};
+    `;
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        user: response[0],
+        debug: {
+          newBalance: newBalance,
+        },
+      }),
+      { status: 201 }
+    );
+  } catch (err: any) {
+    console.error("Error in balance ser:", {
+      error: err,
+      code: err.code,
+      message: err.message,
+      detail: err.detail,
+      constraint: err.constraint,
+    });
+
+    if (err.code === "23505") {
+      return Response.json(
+        {
+          error: "User already exists",
+          details: "Check for actual balance",
+        },
+        { status: 409 }
+      );
+    }
+
+    return Response.json({ new_balance: newBalance });
+  }
+}

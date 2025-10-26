@@ -14,49 +14,104 @@ import { ArrowLeft } from "lucide-react-native";
 import { useState } from "react";
 import { useQRStore } from "@/store/qrStore";
 
-// Función para validar QR en la BD (mock)
-const validateQRInDatabase = async (qrCode: string) => {
-  // Simular llamada a BD
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+//function to get a user by it's qr_code
+async function getUserByQrId(qrCode: string) {
+  const API_URL = `/(api)/user?qr_id=${qrCode}`;
 
-  // BD Mock - aquí iría tu llamada real a la BD
-  const mockDatabase = [
-    {
-      id: "1",
-      qrId: "usr_12345",
-      name: "Juan Pérez",
-      email: "juan.perez@email.com",
-    },
-    {
-      id: "2",
-      qrId: "usr_67890",
-      name: "María García",
-      email: "maria.garcia@email.com",
-    },
-    {
-      id: "3",
-      qrId: "demo_qr",
-      name: "Usuario Demo",
-      email: "demo@email.com",
-    },
-  ];
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  // Buscar por QR exacto o por contener el código
-  const user = mockDatabase.find(
-    (u) => u.qrId === qrCode || qrCode.includes(u.qrId)
-  );
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("API Error:", response.status, errorData);
+      return null;
+    }
 
-  if (user) {
-    return user;
+    const data = await response.json();
+    console.log("Usuario encontrado:", data);
+
+    if (data.success && data.user) {
+      return {
+        id: data.user.id,
+        qrId: data.user.qr_id,
+        name: data.user.name,
+        email: data.user.email,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Network Error calling user API:", error);
+    return null;
   }
+}
 
-  // Si no se encuentra, crear usuario mock con el QR escaneado
-  return {
-    id: "temp_" + Date.now(),
-    qrId: qrCode.substring(0, 16),
-    name: "Usuario QR",
-    email: "usuario@email.com",
-  };
+//call to get the user balance with it's id
+async function getBalanceByUser(user_id: string) {
+  const API_URL = `/(api)/balance?user_id=${user_id}`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // GET no lleva body
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("API Error:", response.status, errorData);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.user) {
+      return {
+        balance: data.user.balance,
+        updated_at: data.user.updated_at,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Network Error calling balance API:", error);
+    return null;
+  }
+}
+
+// Función para validar QR en la BD usando APIs reales
+const validateQRInDatabase = async (qrCode: string) => {
+  try {
+    console.log("Validando QR:", qrCode);
+
+    // Buscar usuario por QR ID en la base de datos
+    const user = await getUserByQrId(qrCode);
+
+    if (user) {
+      console.log("Usuario encontrado:", user);
+
+      // Opcional: También obtener su balance para mostrar info completa
+      const balance = await getBalanceByUser(user.id);
+
+      return {
+        ...user,
+        balance: balance?.balance || 0,
+      };
+    }
+
+    console.log("Usuario no encontrado para QR:", qrCode);
+    return null;
+  } catch (error) {
+    console.error("Error validando QR en BD:", error);
+    return null;
+  }
 };
 
 export default function qrScan() {
@@ -81,7 +136,7 @@ export default function qrScan() {
         setQRData(userData);
 
         Alert.alert(
-          "QR Válido ✅",
+          "QR Válido",
           `Destinatario encontrado:\n${userData.name}\n${userData.email}`,
           [
             {
@@ -104,7 +159,7 @@ export default function qrScan() {
         );
       } else {
         Alert.alert(
-          "QR No Válido ❌",
+          "QR No Válido",
           "Este código QR no está registrado en el sistema.",
           [
             {
