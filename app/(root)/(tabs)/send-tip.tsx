@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useBalanceStore } from "@/components/Balance";
 import CustomHeader from "@/components/CustomHeader";
+import { Button } from "@react-navigation/elements";
 
 export default function TipView() {
   const router = useRouter();
@@ -64,6 +65,12 @@ export default function TipView() {
       }, 2500);
     }, 1500);
   };
+
+  useEffect(() => {
+    if (showQRScanner) {
+      router.push("/(root)/(tabs)/cameraPermissions");
+    }
+  }, [showQRScanner, router]);
 
   return (
     <View className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
