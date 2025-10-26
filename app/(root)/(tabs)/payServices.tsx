@@ -7,6 +7,7 @@ import { View, Text, Pressable, ScrollView, SafeAreaView, Alert } from "react-na
 import { useBalanceStore } from "./balance";
 import { useRouter } from "expo-router";
 
+
 const mockServices: Service[] = [
   {
     id: "1",
@@ -157,6 +158,17 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
                 </Text>
               </Pressable>
             </View>
+
+            <Pressable
+              onPress={() => router.push("/(root)/(tabs)/tip")}
+              className="w-full py-4 rounded-xl shadow-md active:scale-[0.98] transition-transform mb-4 flex flex-row items-center justify-center gap-2"
+              style={{ backgroundColor: "#FF7A00" }}
+            >
+              <Text className="text-2xl">💰</Text>
+              <Text className="text-lg text-white font-semibold">
+                Enviar Propina
+              </Text>
+            </Pressable>
 
             <View className="gap-4">
               {mockServices.map((service) => (
