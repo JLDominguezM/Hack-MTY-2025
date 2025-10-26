@@ -1,7 +1,8 @@
 import { useCameraPermissions } from "expo-camera";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import qrScan from "./qrScan";
 
 export default function cameraPermissions() {

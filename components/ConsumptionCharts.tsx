@@ -1,218 +1,154 @@
 import React from "react";
 import { View, Text, ScrollView, Dimensions } from "react-native";
-import { PieChart } from "react-native-chart-kit";
+import { LineChart, PieChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
-
-// Mock data para consumo positivo (ahorros/eficiencia)
-const positiveConsumptionData = [
-  {
-    name: "Ahorro Energético",
-    population: 35,
-    color: "#22C55E",
-    legendFontColor: "#374151",
-    legendFontSize: 12,
-  },
-  {
-    name: "Uso Eficiente Agua",
-    population: 28,
-    color: "#3B82F6",
-    legendFontColor: "#374151",
-    legendFontSize: 12,
-  },
-  {
-    name: "Gas Optimizado",
-    population: 22,
-    color: "#10B981",
-    legendFontColor: "#374151",
-    legendFontSize: 12,
-  },
-  {
-    name: "Energías Renovables",
-    population: 15,
-    color: "#06B6D4",
-    legendFontColor: "#374151",
-    legendFontSize: 12,
-  },
-];
-
-// Mock data para consumo negativo (excesos/desperdicios)
-const negativeConsumptionData = [
-  {
-    name: "Consumo Excesivo Luz",
-    population: 40,
-    color: "#EF4444",
-    legendFontColor: "#374151",
-    legendFontSize: 12,
-  },
-  {
-    name: "Desperdicio Agua",
-    population: 25,
-    color: "#F59E0B",
-    legendFontColor: "#374151",
-    legendFontSize: 12,
-  },
-  {
-    name: "Ineficiencia Gas",
-    population: 20,
-    color: "#DC2626",
-    legendFontColor: "#374151",
-    legendFontSize: 12,
-  },
-  {
-    name: "Equipos Obsoletos",
-    population: 15,
-    color: "#B91C1C",
-    legendFontColor: "#374151",
-    legendFontSize: 12,
-  },
-];
 
 const chartConfig = {
   backgroundColor: "#ffffff",
   backgroundGradientFrom: "#ffffff",
   backgroundGradientTo: "#ffffff",
-  decimalPlaces: 1,
-  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  decimalPlaces: 0,
+  color: (opacity = 1) => `rgba(236, 0, 0, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
   style: {
     borderRadius: 16,
   },
+  propsForDots: {
+    r: "6",
+    strokeWidth: "2",
+    stroke: "#EC0000",
+  },
 };
 
-const ConsumptionCharts = () => {
+interface ConsumptionChartsProps {
+  consumptionData: any;
+}
+
+const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
+  consumptionData,
+}) => {
+  if (!consumptionData || !consumptionData.consumption) {
+    return (
+      <View style={{ padding: 16, alignItems: "center" }}>
+        <Text style={{ color: "#6B7280" }}>
+          No hay datos de consumo disponibles
+        </Text>
+      </View>
+    );
+  }
+
+  const { by_service } = consumptionData.consumption;
+
+  // Preparar datos para gráficas de tendencia
+  const prepareLineChartData = (serviceData: any[], serviceName: string) => {
+    if (!serviceData || serviceData.length === 0) return null;
+
+    const sorted = [...serviceData].sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return a.month - b.month;
+    });
+
+    return {
+      labels: sorted.map((d) => `${d.month}/${d.year.toString().slice(2)}`),
+      datasets: [
+        {
+          data: sorted.map((d) => d.amount),
+          color: (opacity = 1) => {
+            const colors: any = {
+              luz: `rgba(251, 191, 36, ${opacity})`,
+              agua: `rgba(59, 130, 246, ${opacity})`,
+              gas: `rgba(239, 68, 68, ${opacity})`,
+            };
+            return colors[serviceName] || `rgba(16, 185, 129, ${opacity})`;
+          },
+          strokeWidth: 3,
+        },
+      ],
+    };
+  };
+
+  // Preparar datos para gráfica de pastel (distribución actual, solo pagos reales del mes actual)
+  const preparePieChartData = () => {
+    const colors: any = {
+      luz: "#FCD34D",
+      agua: "#3B82F6",
+      gas: "#EF4444",
+      internet: "#10B981",
+      telefono: "#8B5CF6",
+    };
+
+    const icons: any = {
+      luz: "💡",
+      agua: "💧",
+      gas: "🔥",
+      internet: "📡",
+      telefono: "📱",
+    };
+
+    // Usar solo los pagos reales del mes actual
+    const currentMonthPayments =
+      consumptionData.consumption.current_month_payments || [];
+
+    // currentMonthPayments es un array de objetos: { service_type, total_paid }
+    const pieData = currentMonthPayments
+      .map((item: any) => {
+        const serviceName = item.service_type;
+        const totalPaid = parseFloat(item.total_paid);
+        return {
+          name: `${icons[serviceName] || "📊"} ${
+            serviceName.charAt(0).toUpperCase() + serviceName.slice(1)
+          }`,
+          population: totalPaid,
+          color: colors[serviceName] || "#6B7280",
+          legendFontColor: "#374151",
+          legendFontSize: 12,
+        };
+      })
+      .filter((item: any) => item.population > 0); // Filtrar servicios sin pagos
+
+    return pieData;
+  };
+
+  // Calcular tendencias
+  const calculateTrends = () => {
+    const trends: any = {};
+    Object.keys(by_service).forEach((serviceName) => {
+      const data = by_service[serviceName];
+      if (data.length >= 2) {
+        const latest = data[0];
+        const previous = data[1];
+        const change =
+          ((latest.amount - previous.amount) / previous.amount) * 100;
+        trends[serviceName] = {
+          change: change.toFixed(2),
+          isImproving: change < 0,
+        };
+      }
+    });
+    return trends;
+  };
+
+  const pieChartData = preparePieChartData();
+  const trends = calculateTrends();
+
+  // Generar una key única basada en los datos para forzar re-render
+  const chartKey = pieChartData
+    .map((d: any) => `${d.name}-${d.population}`)
+    .join("-");
+
   return (
     <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
       <View style={{ padding: 16 }}>
-        {/* Gráfica de Consumo Positivo */}
-        <View
-          style={{
-            backgroundColor: "#F8F9FA",
-            borderRadius: 16,
-            padding: 16,
-            marginBottom: 20,
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 3.84,
-            elevation: 5,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              textAlign: "center",
-              marginBottom: 16,
-              color: "#22C55E",
-            }}
-          >
-            📈 Hábitos Positivos de Consumo
-          </Text>
-          <PieChart
-            data={positiveConsumptionData}
-            width={screenWidth - 64}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            center={[10, 0]}
-            absolute
-          />
-          <View
-            style={{
-              backgroundColor: "#DCFCE7",
-              padding: 12,
-              borderRadius: 8,
-              marginTop: 12,
-            }}
-          >
-            <Text
-              style={{
-                textAlign: "center",
-                color: "#166534",
-                fontWeight: "600",
-              }}
-            >
-              Total de eficiencia: 85% del consumo ideal
-            </Text>
-          </View>
-        </View>
-
-        {/* Gráfica de Consumo Negativo */}
-        <View
-          style={{
-            backgroundColor: "#FEF2F2",
-            borderRadius: 16,
-            padding: 16,
-            marginBottom: 20,
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 3.84,
-            elevation: 5,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              textAlign: "center",
-              marginBottom: 16,
-              color: "#EF4444",
-            }}
-          >
-            📉 Áreas de Mejora en Consumo
-          </Text>
-          <PieChart
-            data={negativeConsumptionData}
-            width={screenWidth - 64}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            center={[10, 0]}
-            absolute
-          />
-          <View
-            style={{
-              backgroundColor: "#FEE2E2",
-              padding: 12,
-              borderRadius: 8,
-              marginTop: 12,
-            }}
-          >
-            <Text
-              style={{
-                textAlign: "center",
-                color: "#991B1B",
-                fontWeight: "600",
-              }}
-            >
-              Potencial de ahorro: $2,450 MXN/mes
-            </Text>
-          </View>
-        </View>
-
-        {/* Resumen de métricas */}
+        {/* Gráfica de Distribución de Gastos */}
         <View
           style={{
             backgroundColor: "#FFFFFF",
             borderRadius: 16,
             padding: 16,
+            marginBottom: 20,
             shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
+            shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,
             shadowRadius: 3.84,
             elevation: 5,
@@ -220,65 +156,185 @@ const ConsumptionCharts = () => {
         >
           <Text
             style={{
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: "bold",
               textAlign: "center",
               marginBottom: 16,
               color: "#374151",
             }}
           >
-            📊 Resumen de Consumo
+            💰 Distribución de Gastos Actual
           </Text>
-
+          <PieChart
+            key={chartKey}
+            data={pieChartData}
+            width={screenWidth - 64}
+            height={220}
+            chartConfig={chartConfig}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="15"
+            center={[10, 0]}
+            absolute
+          />
           <View
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 12,
+              backgroundColor: "#F3F4F6",
+              padding: 12,
+              borderRadius: 8,
+              marginTop: 12,
             }}
           >
-            <Text style={{ color: "#6B7280" }}>Eficiencia Total:</Text>
-            <Text style={{ fontWeight: "bold", color: "#22C55E" }}>85%</Text>
-          </View>
-
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 12,
-            }}
-          >
-            <Text style={{ color: "#6B7280" }}>Gasto Mensual:</Text>
-            <Text style={{ fontWeight: "bold", color: "#374151" }}>
-              $4,200 MXN
-            </Text>
-          </View>
-
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 12,
-            }}
-          >
-            <Text style={{ color: "#6B7280" }}>Ahorro Potencial:</Text>
-            <Text style={{ fontWeight: "bold", color: "#EF4444" }}>
-              $2,450 MXN
-            </Text>
-          </View>
-
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: "#6B7280" }}>Meta de Ahorro:</Text>
-            <Text style={{ fontWeight: "bold", color: "#3B82F6" }}>
-              30% menos
+            <Text
+              style={{
+                textAlign: "center",
+                color: "#374151",
+                fontWeight: "600",
+              }}
+            >
+              Total mensual: $
+              {pieChartData
+                .reduce((sum: number, item: any) => sum + item.population, 0)
+                .toFixed(2)}{" "}
+              MXN
             </Text>
           </View>
         </View>
+
+        {/* Tendencias por Servicio */}
+        <View
+          style={{
+            backgroundColor: "#FFFFFF",
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              textAlign: "center",
+              marginBottom: 16,
+              color: "#374151",
+            }}
+          >
+            📈 Tendencias de Consumo
+          </Text>
+          {Object.keys(trends).map((serviceName) => {
+            const trend = trends[serviceName];
+            return (
+              <View
+                key={serviceName}
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  backgroundColor: trend.isImproving ? "#ECFDF5" : "#FEF2F2",
+                  padding: 12,
+                  borderRadius: 8,
+                  marginBottom: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    color: "#374151",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {serviceName}
+                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      marginRight: 4,
+                    }}
+                  >
+                    {trend.isImproving ? "📉" : "📈"}
+                  </Text>
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      color: trend.isImproving ? "#059669" : "#DC2626",
+                    }}
+                  >
+                    {trend.change > 0 ? "+" : ""}
+                    {trend.change}%
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+
+        {/* Gráficas de línea por servicio */}
+        {Object.keys(by_service).map((serviceName) => {
+          const lineData = prepareLineChartData(
+            by_service[serviceName],
+            serviceName
+          );
+          if (!lineData) return null;
+
+          const icons: any = {
+            luz: "💡",
+            agua: "💧",
+            gas: "🔥",
+            internet: "📡",
+            telefono: "📱",
+          };
+
+          return (
+            <View
+              key={serviceName}
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: 16,
+                padding: 16,
+                marginBottom: 20,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 3.84,
+                elevation: 5,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  marginBottom: 16,
+                  color: "#374151",
+                  textTransform: "capitalize",
+                }}
+              >
+                {icons[serviceName] || "📊"} Historial de {serviceName}
+              </Text>
+              <LineChart
+                data={lineData}
+                width={screenWidth - 64}
+                height={220}
+                chartConfig={chartConfig}
+                bezier
+                style={{
+                  borderRadius: 16,
+                }}
+                withDots={true}
+                withInnerLines={true}
+                withOuterLines={true}
+                withVerticalLines={false}
+                withHorizontalLines={true}
+              />
+            </View>
+          );
+        })}
       </View>
     </ScrollView>
   );
