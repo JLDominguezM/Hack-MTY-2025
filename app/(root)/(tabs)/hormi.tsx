@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  Wallet,
-  TrendingUp,
-  Receipt,
-  ArrowLeftRight,
-  ChevronDown,
-  Leaf,
-} from "lucide-react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ChevronDown, Leaf } from "lucide-react-native";
 import {
   ActivityIndicator,
   Image,
