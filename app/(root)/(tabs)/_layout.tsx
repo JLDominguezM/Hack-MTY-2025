@@ -8,6 +8,7 @@ export default function Layout() {
       <Stack.Screen name="hormi" options={{ headerShown: false }} />
       <Stack.Screen name="payServices" options={{ headerShown: false }} />
       <Stack.Screen name="consumption" options={{ headerShown: false }} />
+      <Stack.Screen name="hormiTalking" options={{ headerShown: false }} />
     </Stack>
   );
 }
