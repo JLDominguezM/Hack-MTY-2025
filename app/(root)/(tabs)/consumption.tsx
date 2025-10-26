@@ -1,45 +1,100 @@
 import CustomHeader from "@/components/CustomHeader";
 import ConsumptionCharts from "@/components/ConsumptionCharts";
-import { Text, View, ScrollView, ActivityIndicator } from "react-native";
+import {
+  Text,
+  View,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import { useState, useEffect } from "react";
 import { fetchAPI } from "@/lib/fetch";
 import { useBalanceStore } from "@/components/Balance";
+import { useConsumptionStore } from "@/store/consumptionStore";
 
 const Consumption = () => {
   const userId = useBalanceStore((state) => state.userId);
+  const lastUpdate = useConsumptionStore((state) => state.lastUpdate);
   const [consumptionData, setConsumptionData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchConsumptionData = async () => {
+    if (!userId) return;
+
+    console.log("🔄 Fetching consumption data for user:", userId);
+
+    try {
+      const data = await fetchAPI(
+        `/(api)/consumption?user_id=${userId}&months=6`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (data.success) {
+        console.log("✅ Consumption data fetched:", {
+          services: Object.keys(data.consumption?.by_service || {}),
+          greenScore: data.green_score?.total_points,
+          achievements: data.achievements?.length,
+        });
+        setConsumptionData(data);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching consumption data:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchConsumptionData = async () => {
-      if (!userId) return;
+    console.log(
+      "📊 Consumption useEffect triggered. userId:",
+      userId,
+      "lastUpdate:",
+      lastUpdate
+    );
 
+    const loadData = async () => {
       setIsLoading(true);
-      try {
-        const data = await fetchAPI(
-          `/(api)/consumption?user_id=${userId}&months=6`,
-          {
-            method: "GET",
-          }
-        );
-
-        if (data.success) {
-          setConsumptionData(data);
-        }
-      } catch (error) {
-        console.error("Error fetching consumption data:", error);
-      } finally {
-        setIsLoading(false);
-      }
+      await fetchConsumptionData();
+      setIsLoading(false);
     };
 
-    fetchConsumptionData();
-  }, [userId]);
+    loadData();
+  }, [userId, lastUpdate]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchConsumptionData();
+    setRefreshing(false);
+  };
+
+  // Log cuando cambien los datos de consumo
+  useEffect(() => {
+    if (consumptionData) {
+      console.log("📈 CONSUMPTION DATA UPDATED:", {
+        timestamp: new Date().toISOString(),
+        services: Object.keys(consumptionData.consumption?.by_service || {}),
+        totalRecords: consumptionData.consumption?.history?.length || 0,
+        greenPoints: consumptionData.green_score?.total_points || 0,
+      });
+    }
+  }, [consumptionData]);
 
   return (
     <View style={{ flex: 1 }}>
       <CustomHeader title="Consumo" showBackButton={true} />
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#EC0000"]}
+            tintColor="#EC0000"
+          />
+        }
+      >
         {isLoading ? (
           <View style={{ paddingVertical: 60, alignItems: "center" }}>
             <ActivityIndicator size="large" color="#EC0000" />

@@ -16,6 +16,7 @@ import { useBalanceStore } from "../../../components/Balance";
 import { useRouter } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
 import { useUser } from "@clerk/clerk-expo";
+import { useConsumptionStore } from "@/store/consumptionStore";
 
 interface PaymentServicesViewProps {
   onNavigate?: (view: string) => void;
@@ -27,6 +28,9 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
   const accountBalance = useBalanceStore((state) => state.accountBalance);
   const fetchBalance = useBalanceStore((state) => state.fetchBalance);
   const userId = useBalanceStore((state) => state.userId);
+  const refreshConsumption = useConsumptionStore(
+    (state) => state.refreshConsumption
+  );
 
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -136,6 +140,9 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
         // Actualizar balance desde el servidor
         await fetchBalance(userId);
 
+        // Refrescar datos de consumo
+        refreshConsumption();
+
         // Eliminar servicios pagados de la lista
         setServices((prev) =>
           prev.filter((service) => !selectedServices.includes(service.id))
@@ -143,24 +150,32 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
 
         setSelectedServices([]);
 
-        Alert.alert(
-          "Pago Exitoso",
-          `Se han pagado $${selectedTotal.toFixed(
-            2
-          )} MN.\nNuevo saldo: $${data.new_balance.toFixed(2)} MN`,
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  router.replace("/home");
-                }
-              },
+        // Preparar mensaje de éxito
+        let successMessage = `Se han pagado $${selectedTotal.toFixed(
+          2
+        )} MN.\nNuevo saldo: $${data.new_balance.toFixed(2)} MN`;
+
+        // Agregar información de puntos verdes si se ganaron
+        if (data.green_points_earned && data.green_points_earned > 0) {
+          successMessage += `\n\n🌱 ¡Felicidades!\nGanaste ${
+            data.green_points_earned
+          } puntos verdes por pagar anticipadamente:\n${data.early_payments
+            .map((s: string) => `• ${s.charAt(0).toUpperCase() + s.slice(1)}`)
+            .join("\n")}`;
+        }
+
+        Alert.alert("Pago Exitoso", successMessage, [
+          {
+            text: "OK",
+            onPress: () => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/home");
+              }
             },
-          ]
-        );
+          },
+        ]);
       }
     } catch (error) {
       console.error("Error processing payment:", error);

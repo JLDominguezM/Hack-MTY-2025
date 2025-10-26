@@ -180,7 +180,7 @@ export default function HormiView() {
               <View className="px-6 pb-4 border-b border-gray-200">
                 <View className="flex-row justify-between items-center mb-2">
                   <Text className="text-2xl font-bold text-center flex-1">
-                    Beneficios Empresas Verdes
+                    Beneficios
                   </Text>
                   <TouchableOpacity
                     onPress={() => setShowBenefits(false)}
@@ -222,13 +222,6 @@ function SubNavigation() {
 function PointsDisplay({ level, points }: { level: string; points: number }) {
   return (
     <View className="w-full flex-row items-center justify-between px-2 mb-8">
-      <View className="flex-row items-center gap-2">
-        <Leaf size={32} color="#10b981" />
-        <View>
-          <Text className="text-sm text-gray-500">Nivel</Text>
-          <Text className="text-lg font-semibold text-gray-900">{level}</Text>
-        </View>
-      </View>
       <View className="items-end">
         <Text className="text-5xl font-bold text-gray-900">{points}</Text>
         <Text className="text-lg font-semibold text-gray-700 ml-2">PUNTOS</Text>
@@ -274,14 +267,6 @@ function BenefitCard({
             </View>
           </View>
           <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-gray-200">
-            <View>
-              <Text className="text-[#EC0000] font-semibold">
-                {benefit.benefit}
-              </Text>
-              <Text className="text-sm text-gray-500">
-                {benefit.points} puntos
-              </Text>
-            </View>
             <TouchableOpacity
               className={`px-4 py-2 rounded-lg ${
                 canRedeem ? "bg-[#EC0000]" : "bg-gray-200"

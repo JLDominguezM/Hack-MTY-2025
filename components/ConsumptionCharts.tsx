@@ -68,7 +68,7 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
     };
   };
 
-  // Preparar datos para gráfica de pastel (distribución actual)
+  // Preparar datos para gráfica de pastel (distribución actual, solo pagos reales del mes actual)
   const preparePieChartData = () => {
     const colors: any = {
       luz: "#FCD34D",
@@ -86,18 +86,26 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
       telefono: "📱",
     };
 
-    const pieData = Object.keys(by_service).map((serviceName) => {
-      const latestData = by_service[serviceName][0];
-      return {
-        name: `${icons[serviceName] || "📊"} ${
-          serviceName.charAt(0).toUpperCase() + serviceName.slice(1)
-        }`,
-        population: parseFloat(latestData.amount),
-        color: colors[serviceName] || "#6B7280",
-        legendFontColor: "#374151",
-        legendFontSize: 12,
-      };
-    });
+    // Usar solo los pagos reales del mes actual
+    const currentMonthPayments =
+      consumptionData.consumption.current_month_payments || [];
+
+    // currentMonthPayments es un array de objetos: { service_type, total_paid }
+    const pieData = currentMonthPayments
+      .map((item: any) => {
+        const serviceName = item.service_type;
+        const totalPaid = parseFloat(item.total_paid);
+        return {
+          name: `${icons[serviceName] || "📊"} ${
+            serviceName.charAt(0).toUpperCase() + serviceName.slice(1)
+          }`,
+          population: totalPaid,
+          color: colors[serviceName] || "#6B7280",
+          legendFontColor: "#374151",
+          legendFontSize: 12,
+        };
+      })
+      .filter((item: any) => item.population > 0); // Filtrar servicios sin pagos
 
     return pieData;
   };
@@ -123,6 +131,11 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
 
   const pieChartData = preparePieChartData();
   const trends = calculateTrends();
+
+  // Generar una key única basada en los datos para forzar re-render
+  const chartKey = pieChartData
+    .map((d: any) => `${d.name}-${d.population}`)
+    .join("-");
 
   return (
     <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
@@ -153,6 +166,7 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
             💰 Distribución de Gastos Actual
           </Text>
           <PieChart
+            key={chartKey}
             data={pieChartData}
             width={screenWidth - 64}
             height={220}
@@ -179,9 +193,9 @@ const ConsumptionCharts: React.FC<ConsumptionChartsProps> = ({
               }}
             >
               Total mensual: $
-              {consumptionData.consumption.stats.avg_monthly_consumption.toFixed(
-                2
-              )}{" "}
+              {pieChartData
+                .reduce((sum: number, item: any) => sum + item.population, 0)
+                .toFixed(2)}{" "}
               MXN
             </Text>
           </View>

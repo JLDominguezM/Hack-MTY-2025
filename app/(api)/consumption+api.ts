@@ -34,6 +34,23 @@ export async function GET(request: Request) {
       LIMIT ${months * 3}
     `;
 
+    // Obtener pagos del mes actual agrupados por servicio
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    const currentMonthPayments = await sql`
+      SELECT 
+        ps.name as service_type,
+        SUM(pst.amount) as total_paid
+      FROM payment_service_transactions pst
+      JOIN user_payment_services ups ON pst.user_payment_service_id = ups.id
+      JOIN payment_services ps ON ups.service_id = ps.id
+      WHERE pst.user_id = ${user_id}
+        AND EXTRACT(MONTH FROM pst.paid_at) = ${currentMonth}
+        AND EXTRACT(YEAR FROM pst.paid_at) = ${currentYear}
+      GROUP BY ps.name
+    `;
+
     // Obtener puntaje verde del usuario
     const greenScore = await sql`
       SELECT 
@@ -56,7 +73,8 @@ export async function GET(request: Request) {
         ga.name,
         ga.description,
         ga.icon,
-        ga.category
+        ga.category,
+        ga.action_code
       FROM user_green_achievements uga
       JOIN green_actions ga ON uga.action_id = ga.id
       WHERE uga.user_id = ${user_id}
@@ -94,12 +112,20 @@ export async function GET(request: Request) {
       });
     });
 
+    console.log(`📊 Consumption API - User ${user_id}:`, {
+      consumptionRecords: consumptionHistory.length,
+      services: Object.keys(byService),
+      greenScore: greenScore.length > 0 ? greenScore[0].total_points : 0,
+      achievements: recentAchievements.length,
+    });
+
     return Response.json({
       success: true,
       consumption: {
         by_service: byService,
         history: consumptionHistory,
         stats,
+        current_month_payments: currentMonthPayments,
       },
       green_score:
         greenScore.length > 0
