@@ -13,7 +13,7 @@ import {
 import { ArrowLeft, QrCode } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { useBalanceStore } from "./balance";
+import { useBalanceStore } from "@/components/Balance";
 import CustomHeader from "@/components/CustomHeader";
 
 export default function TipView() {
@@ -276,18 +276,6 @@ export default function TipView() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Modal del QR Scanner */}
-      <Modal
-        visible={showQRScanner}
-        animationType="slide"
-        presentationStyle="fullScreen"
-      >
-        <QRScanner
-          onScan={handleQRScan}
-          onClose={() => setShowQRScanner(false)}
-        />
-      </Modal>
     </View>
   );
 }

@@ -5,7 +5,7 @@ import CustomHeader from "@/components/CustomHeader";
 
 const RecieveTip = () => {
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white">
       <CustomHeader title="Recibir Propina" showBackButton={true} />
 
       <ScrollView
@@ -23,9 +23,6 @@ const RecieveTip = () => {
             forma fácil y segura
           </Text>
         </View>
-
-        {/* Componente del código QR */}
-        <UserQRCode size={250} showControls={true} />
 
         {/* Información adicional */}
         <View className="mt-8 bg-gray-50 rounded-xl p-6 w-full">
@@ -69,7 +66,7 @@ const RecieveTip = () => {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

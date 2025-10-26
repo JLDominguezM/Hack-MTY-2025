@@ -13,6 +13,7 @@ import { SignOutButton } from "@/components/SignOutButton";
 const { Platform } = require("react-native");
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useLocationStore } from "@/store";
+import { useBalanceStore } from "@/components/Balance";
 
 const { height } = Dimensions.get("window");
 
@@ -70,7 +71,6 @@ const Home = () => {
   const { user } = useUser();
 
   const accountBalance = useBalanceStore((state) => state.accountBalance);
-
   const getDisplayName = () => {
     if (user?.firstName) {
       return user.firstName;
@@ -116,13 +116,13 @@ const Home = () => {
       </View>
 
       {/* Navegación */}
-      <View className="bg-[#2a2a2a] px-3 py-4">
+      <View className="bg-BanorteGray px-3 py-4">
         <View className="flex-row items-center justify-between">
           <TouchableOpacity className="flex-col items-center gap-2 flex-1">
             <View className="w-8 h-8 bg-white rounded-full items-center justify-center">
-              <Text className="text-[#2a2a2a] text-sm">💰</Text>
+              <Text className="text-BanorteGray text-sm">💰</Text>
             </View>
-            <Text className="text-[9px] text-white text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Mis{"\n"}cuentas
             </Text>
           </TouchableOpacity>
@@ -131,10 +131,10 @@ const Home = () => {
             className="flex-col items-center gap-2 flex-1"
             onPress={() => router.push("/(root)/(tabs)/consumption")}
           >
-            <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-white text-lg">📊</Text>
+            <View className="w-8 h-8 items-center justify-center bg-white rounded-full">
+              <Text className="text-BanorteGray text-sm">📊</Text>
             </View>
-            <Text className="text-[9px] text-white text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Mi{"\n"}Consumo
             </Text>
           </TouchableOpacity>
@@ -143,19 +143,19 @@ const Home = () => {
             className="flex-col items-center gap-2 flex-1"
             onPress={() => router.push("/(root)/(tabs)/payServices")}
           >
-            <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-BanorteGray text-lg">🧾</Text>
+            <View className="w-8 h-8 items-center justify-center bg-white rounded-full">
+              <Text className="text-BanorteGray text-sm">🧾</Text>
             </View>
-            <Text className="text-[9px] text-white text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Pago de{"\n"}servicios
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="flex-col items-center gap-2 flex-1">
-            <View className="w-8 h-8 items-center justify-center">
-              <Text className="text-BanorteGray text-lg">↔️</Text>
+            <View className="w-8 h-8 items-center justify-center bg-white rounded-full">
+              <Text className="text-BanorteGray text-sm">↔️</Text>
             </View>
-            <Text className="text-[9px] text-BanorteGray text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Transferir
             </Text>
           </TouchableOpacity>
@@ -171,7 +171,7 @@ const Home = () => {
                 <View className="w-3 h-3 bg-white rounded-full mx-auto mt-0.5" />
               </View>
             </View>
-            <Text className="text-[9px] text-BanorteGray text-center leading-tight">
+            <Text className="text-sm text-white text-center leading-tight">
               Hormi
             </Text>
           </TouchableOpacity>
@@ -185,7 +185,7 @@ const Home = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Banner promocional */}
-        <View className="bg-gradient-to-r from-BanorteRed to-[#e94e1b] rounded-xl p-4 mt-4 mb-4 shadow-lg">
+        <View className="bg-BanorteGray rounded-xl p-4 mt-4 mb-4 shadow-lg">
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
               <Text className="text-white text-base font-bold mb-1">
@@ -216,8 +216,8 @@ const Home = () => {
           <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center">
-                  <Text className="text-gray-600 text-xl">💳</Text>
+                <View className="w-12 h-12 bg-BanorteGray rounded-xl items-center justify-center">
+                  <Text className="text-BanorteGray text-xl">💳</Text>
                 </View>
                 <View>
                   <Text className="text-gray-900 text-base font-semibold mb-1">
@@ -238,19 +238,19 @@ const Home = () => {
 
         {/* Servicios rápidos */}
         <View className="mb-4">
-          <Text className="text-gray-900 text-lg font-bold mb-3">
+          <Text className="text-BanorteGray text-lg font-bold mb-3">
             Servicios
           </Text>
 
           {/* Beneficios de mis tarjetas */}
-          <View className="bg-gradient-to-r from-[#f9c74f] to-[#f8b739] p-4 rounded-xl mb-3 shadow-sm">
+          <View className="bg-white p-4 rounded-xl mb-3 shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
+                <View className="w-12 h-12 bg-BanorteGray rounded-xl items-center justify-center">
                   <Text className="text-white text-xl">🎁</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-gray-900 text-base font-semibold mb-1">
+                  <Text className="text-BanorteGray font-bold">
                     Beneficios de mis tarjetas
                   </Text>
                   <Text className="text-sm text-gray-700">
@@ -263,17 +263,17 @@ const Home = () => {
           </View>
 
           {/* Contrata aquí */}
-          <View className="bg-gradient-to-r from-BanorteRed to-[#e94e1b] p-4 rounded-xl shadow-sm">
+          <View className="bg-white p-4 rounded-xl shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">
-                  <Text className="text-white text-xl">📃</Text>
+                <View className="w-12 h-12 bg-BanorteGray rounded-xl items-center justify-center">
+                  <Text className="text-black text-xl">📃</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-white text-base font-semibold mb-1">
+                  <Text className="text-black text-base font-semibold mb-1">
                     Contrata aquí
                   </Text>
-                  <Text className="text-sm text-white/90">
+                  <Text className="text-sm text-black">
                     Tarjeta de Crédito, Pagarés y más
                   </Text>
                 </View>
@@ -284,7 +284,7 @@ const Home = () => {
         </View>
 
         {/* Asistente Hormi */}
-        <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
+        <View className="bg-white p-4 rounded-xl shadow-sm border border-BanorteGray mb-4">
           <View className="items-center">
             <TouchableOpacity
               onPress={() => router.push("/(root)/(tabs)/hormi")}

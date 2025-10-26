@@ -11,7 +11,7 @@ import {
   SafeAreaView,
   Alert,
 } from "react-native";
-import { useBalanceStore } from "./balance";
+import { useBalanceStore } from "../../../components/Balance";
 import { useRouter } from "expo-router";
 
 const mockServices: Service[] = [
