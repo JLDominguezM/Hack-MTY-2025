@@ -33,41 +33,35 @@ const validateQRInDatabase = async (qrCode: string) => {
 
     console.log("Validando UUID:", qrCode);
 
-    // BD Mock con UUIDs reales para pruebas
-    const mockDatabase = [
-      {
-        id: "1",
-        qrId: "9873cf23-0aae-4ab5-9631-34186e6eb787",
-        name: "Juan Pérez",
-        email: "juan.perez@email.com",
-      },
-      {
-        id: "2",
-        qrId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-        name: "María García",
-        email: "maria.garcia@email.com",
-      },
-      {
-        id: "3",
-        qrId: "12345678-90ab-cdef-1234-567890abcdef",
-        name: "Carlos López",
-        email: "carlos.lopez@email.com",
-      },
-    ];
-
     // Simular delay de API
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // Buscar por UUID exacto
-    const user = mockDatabase.find((u) => u.qrId === qrCode);
+    const API_URL = `/(api)/user?clerkId=${qrCode}`;
 
-    if (user) {
-      console.log("Usuario encontrado:", user);
-      return user;
+    try {
+      const response = await fetch(API_URL, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.error("User API Error:", response.status);
+        return null;
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        return data.user.id; // Retorna el user_id de la BD
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Network Error calling User API:", error);
+      return null;
     }
-
-    console.log("Usuario no encontrado para UUID:", qrCode);
-    return null;
   } catch (error) {
     console.error("Error validando QR:", error);
     return null;
@@ -79,6 +73,7 @@ export default function qrScan() {
   const [loading, setLoading] = useState(false);
   const setQRData = useQRStore((state) => state.setQRData);
 
+  // console.log("Usuario encontrado:", user);
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
     if (scanned || loading) return;
 
