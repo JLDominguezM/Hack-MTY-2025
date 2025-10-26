@@ -215,16 +215,10 @@ export async function POST(request: Request) {
         WHERE ups.id = ${service.id}
       `;
 
-      console.log(`Service Info for ID ${service.id}:`, serviceInfo);
-
       if (serviceInfo.length > 0) {
         const serviceName = serviceInfo[0].name.toLowerCase();
         const dueDate = new Date(serviceInfo[0].due_date);
         const paymentDate = new Date();
-
-        console.log(
-          `Processing consumption for user ${user_id}, service: ${serviceName}, amount: ${service.amount}, month: ${currentMonth}, year: ${currentYear}`
-        );
 
         // Verificar si ya existe un registro de consumo para este mes
         const existingConsumption = await sql`
@@ -237,10 +231,6 @@ export async function POST(request: Request) {
         `;
 
         if (existingConsumption.length > 0) {
-          console.log(
-            `Updating existing consumption record ${existingConsumption[0].id}`
-          );
-
           // Obtener consumo del mes anterior para recalcular tendencia
           const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
           const previousYear =
@@ -269,13 +259,7 @@ export async function POST(request: Request) {
                 vs_previous_month = ${vsPreviousMonth}
             WHERE id = ${existingConsumption[0].id}
           `;
-
-          console.log(
-            `Updated consumption: ${service.amount}, vs_previous: ${vsPreviousMonth}`
-          );
         } else {
-          console.log(`Creating new consumption record for ${serviceName}`);
-
           // Obtener consumo del mes anterior para calcular tendencia
           const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
           const previousYear =
@@ -304,10 +288,6 @@ export async function POST(request: Request) {
             VALUES
               (${user_id}, ${serviceName}, ${currentMonth}, ${currentYear}, ${service.amount}, 0, ${vsPreviousMonth})
           `;
-
-          console.log(
-            `Created new consumption: ${service.amount}, vs_previous: ${vsPreviousMonth}`
-          );
         }
 
         // Verificar si el pago fue anticipado (antes de la fecha de vencimiento)

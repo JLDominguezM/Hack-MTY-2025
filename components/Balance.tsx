@@ -104,7 +104,6 @@ export const useBalanceStore = create<BalanceState>((set, get) => ({
           userId,
           isLoading: false,
         });
-        console.log("Balance fetched successfully:", data.user.balance);
       } else {
         console.error("Error: Invalid balance data", data);
         set({ isLoading: false });

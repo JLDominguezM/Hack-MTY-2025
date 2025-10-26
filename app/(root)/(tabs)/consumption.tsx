@@ -22,8 +22,6 @@ const Consumption = () => {
   const fetchConsumptionData = async () => {
     if (!userId) return;
 
-    console.log("🔄 Fetching consumption data for user:", userId);
-
     try {
       const data = await fetchAPI(
         `/(api)/consumption?user_id=${userId}&months=6`,
@@ -33,11 +31,6 @@ const Consumption = () => {
       );
 
       if (data.success) {
-        console.log("✅ Consumption data fetched:", {
-          services: Object.keys(data.consumption?.by_service || {}),
-          greenScore: data.green_score?.total_points,
-          achievements: data.achievements?.length,
-        });
         setConsumptionData(data);
       }
     } catch (error) {
@@ -46,13 +39,6 @@ const Consumption = () => {
   };
 
   useEffect(() => {
-    console.log(
-      "📊 Consumption useEffect triggered. userId:",
-      userId,
-      "lastUpdate:",
-      lastUpdate
-    );
-
     const loadData = async () => {
       setIsLoading(true);
       await fetchConsumptionData();
@@ -67,18 +53,6 @@ const Consumption = () => {
     await fetchConsumptionData();
     setRefreshing(false);
   };
-
-  // Log cuando cambien los datos de consumo
-  useEffect(() => {
-    if (consumptionData) {
-      console.log("📈 CONSUMPTION DATA UPDATED:", {
-        timestamp: new Date().toISOString(),
-        services: Object.keys(consumptionData.consumption?.by_service || {}),
-        totalRecords: consumptionData.consumption?.history?.length || 0,
-        greenPoints: consumptionData.green_score?.total_points || 0,
-      });
-    }
-  }, [consumptionData]);
 
   return (
     <View style={{ flex: 1 }}>

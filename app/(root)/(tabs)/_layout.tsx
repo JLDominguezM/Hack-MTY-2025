@@ -16,6 +16,8 @@ export default function Layout() {
         name="(citizen-services)"
         options={{ headerShown: false }}
       />
+      <Stack.Screen name="scanCode" options={{ headerShown: false }} />
+      <Stack.Screen name="qrScan" options={{ headerShown: false }} />
     </Stack>
   );
 }

@@ -8,7 +8,6 @@ const Verificacion = () => {
 
   const handleConsultar = () => {
     // Aquí irá la lógica para consultar el vehículo
-    console.log("Consultando vehículo con placa:", placa);
   };
 
   return (

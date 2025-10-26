@@ -1,5 +1,6 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
+import { useCameraPermissions, CameraView } from "expo-camera";
 import {
   View,
   Text,
@@ -83,6 +84,22 @@ async function getBalanceFromAPI(user_id: string) {
 }
 
 const Home = () => {
+  // Permisos de cámara
+  const [permission, requestPermission] = useCameraPermissions();
+  const isPermissionGranted = Boolean(permission?.granted);
+  const [showScanner, setShowScanner] = useState(false);
+  // Mostrar escáner automáticamente si hay permiso
+  useEffect(() => {
+    if (permission && permission.granted) {
+      setShowScanner(true);
+    }
+  }, [permission]);
+  // Handler para escaneo QR (puedes personalizarlo)
+  const handleBarCodeScanned = ({ data }: { data: string }) => {
+    setShowScanner(false);
+    // Aquí puedes navegar o guardar el QR
+    alert(`QR escaneado: ${data}`);
+  };
   const [now, setNow] = React.useState<Date>(new Date());
   const [balance, setBalance] = useState(0);
   const [loadingBalance, setLoadingBalance] = useState(false);
@@ -108,17 +125,11 @@ const Home = () => {
           return;
         }
 
-        console.log("Found database user_id:", userId);
-
         // Ahora obtener el balance usando el user_id correcto
         const balanceData = await getBalanceFromAPI(userId);
 
         if (balanceData) {
           setBalance(balanceData.balance);
-          console.log("Balance cargado desde API:", balanceData.balance);
-        } else {
-          console.log("No se pudo cargar el balance desde la API");
-          // Usar balance del store como fallback
         }
       } catch (error) {
         console.error("Error cargando balance:", error);
@@ -199,8 +210,6 @@ const Home = () => {
         );
 
         if (userData.success && userData.user) {
-          console.log("User data fetched:", userData.user);
-          // Fetch balance using user_id
           await fetchBalance(userData.user.id);
         }
       } catch (error) {
@@ -226,6 +235,33 @@ const Home = () => {
     return "Usuario";
   };
 
+  // Si no hay permiso, pedirlo al inicio
+  if (!isPermissionGranted) {
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#fff",
+        }}
+      >
+        <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 16 }}>
+          Permiso de cámara requerido
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: "#EC0000", padding: 16, borderRadius: 10 }}
+          onPress={requestPermission}
+        >
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>
+            Permitir acceso a la cámara
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  // ...resto del home
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header rojo */}

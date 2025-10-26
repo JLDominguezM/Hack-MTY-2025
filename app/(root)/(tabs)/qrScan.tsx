@@ -2,38 +2,31 @@ import { CameraView } from "expo-camera";
 import { router } from "expo-router";
 import {
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   Alert,
+  Animated,
 } from "react-native";
-import { ArrowLeft } from "lucide-react-native";
-import { useState } from "react";
+import { ScanLine, CheckCircle } from "lucide-react-native";
+import { useState, useEffect, useRef } from "react";
 import { useQRStore } from "@/store/qrStore";
+import CustomHeader from "@/components/CustomHeader";
 
 // Función para validar QR UUID en la BD
 const validateQRInDatabase = async (qrCode: string) => {
   try {
-    // Verificar si es una URL de Expo (ignorar)
     if (qrCode.startsWith("exp://") || qrCode.startsWith("http")) {
-      console.log("QR detectado es una URL, no un UUID de usuario");
       return null;
     }
 
-    // Verificar que sea un UUID válido (formato: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(qrCode)) {
-      console.log("QR no es un UUID válido:", qrCode);
       return null;
     }
 
-    console.log("Validando UUID:", qrCode);
-
-    // Simular delay de API
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const API_URL = `/(api)/user?clerkId=${qrCode}`;
@@ -54,7 +47,7 @@ const validateQRInDatabase = async (qrCode: string) => {
       const data = await response.json();
 
       if (data.success && data.user) {
-        return data.user.id; // Retorna el user_id de la BD
+        return data.user.id;
       }
 
       return null;
@@ -68,12 +61,71 @@ const validateQRInDatabase = async (qrCode: string) => {
   }
 };
 
-export default function qrScan() {
+export default function QRScan() {
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
   const setQRData = useQRStore((state) => state.setQRData);
 
-  // console.log("Usuario encontrado:", user);
+  // Animaciones
+  const scanLineAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const cornerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Animación de la línea de escaneo
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanLineAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scanLineAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Animación de pulso en las esquinas
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(cornerAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cornerAnim, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  useEffect(() => {
+    if (loading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [loading]);
+
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
     if (scanned || loading) return;
 
@@ -81,13 +133,9 @@ export default function qrScan() {
     setLoading(true);
 
     try {
-      console.log("QR escaneado:", data);
-
-      // Validar QR en la base de datos
       const userData = await validateQRInDatabase(data);
 
       if (userData) {
-        // Guardar datos en el store
         setQRData(userData);
 
         Alert.alert(
@@ -105,13 +153,10 @@ export default function qrScan() {
             {
               text: "Confirmar",
               onPress: () => {
-                // Navegar de vuelta a send-tip de forma segura
                 try {
-                  router.dismiss(); // Cierra todos los modales
+                  router.dismiss();
                   router.push("/(root)/(tabs)/send-tip");
                 } catch (error) {
-                  console.log("Error navegando:", error);
-                  // Fallback: intentar con replace
                   router.replace("/(root)/(tabs)/send-tip");
                 }
               },
@@ -119,7 +164,6 @@ export default function qrScan() {
           ]
         );
       } else {
-        // Determinar el tipo de QR escaneado para dar mejor feedback
         let errorMessage = "Este código QR no está registrado en el sistema.";
 
         if (data.startsWith("exp://") || data.startsWith("http")) {
@@ -170,37 +214,22 @@ export default function qrScan() {
     }
   };
 
+  const scanLineTranslateY = scanLineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-120, 120],
+  });
+
+  const cornerOpacity = cornerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.5, 1],
+  });
+
   return (
-    <SafeAreaView style={styleSheet.container}>
+    <View style={styles.container}>
       {Platform.OS === "android" ? <StatusBar hidden /> : null}
 
-      {/* Header con botón de regreso */}
-      <View className="absolute top-12 left-4 z-10">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="bg-black/50 p-3 rounded-lg flex-row items-center"
-        >
-          <ArrowLeft size={20} color="white" />
-          <Text className="text-white ml-2 font-semibold">Volver</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Overlay con instrucciones */}
-      <View className="absolute top-1/4 left-4 right-4 z-10">
-        <View className="bg-black/70 p-4 rounded-lg">
-          <Text className="text-white text-center text-lg font-semibold mb-2">
-            {loading ? "Validando QR..." : "Escanear Código QR"}
-          </Text>
-          <Text className="text-white text-center">
-            {loading
-              ? "Verificando en la base de datos..."
-              : "Apunta la cámara hacia el código QR del destinatario"}
-          </Text>
-        </View>
-      </View>
-
       <CameraView
-        style={styleSheet.camStyle}
+        style={StyleSheet.absoluteFillObject}
         facing="back"
         barcodeScannerSettings={{
           barcodeTypes: ["qr"],
@@ -208,25 +237,293 @@ export default function qrScan() {
         onBarcodeScanned={handleBarCodeScanned}
       />
 
-      {/* Marco del escáner */}
-      <View className="absolute inset-0 justify-center items-center">
-        <View className="w-64 h-64 border-2 border-white border-dashed rounded-lg" />
+      {/* Overlay oscuro */}
+      <View style={styles.overlay}>
+        {/* Instrucciones superiores */}
+        <View style={styles.topInstructions}>
+          <View style={styles.instructionBadge}>
+            <Text style={styles.instructionBadgeText}>
+              {loading ? "🔄 Validando..." : "📸 Listo"}
+            </Text>
+          </View>
+          <Text style={styles.instructionTitle}>
+            {loading ? "Verificando QR" : "Apunta al código QR"}
+          </Text>
+          <Text style={styles.instructionSubtitle}>
+            {loading
+              ? "Consultando base de datos..."
+              : "Asegúrate de tener buena iluminación"}
+          </Text>
+        </View>
+
+        {/* Área de escaneo central */}
+        <View style={styles.scanArea}>
+          <View style={styles.scanFrame}>
+            {/* Esquinas animadas */}
+            <Animated.View
+              style={[
+                styles.corner,
+                styles.cornerTopLeft,
+                { opacity: cornerOpacity },
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.corner,
+                styles.cornerTopRight,
+                { opacity: cornerOpacity },
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.corner,
+                styles.cornerBottomLeft,
+                { opacity: cornerOpacity },
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.corner,
+                styles.cornerBottomRight,
+                { opacity: cornerOpacity },
+              ]}
+            />
+
+            {/* Línea de escaneo animada */}
+            {!loading && (
+              <Animated.View
+                style={[
+                  styles.scanLine,
+                  {
+                    transform: [{ translateY: scanLineTranslateY }],
+                  },
+                ]}
+              />
+            )}
+
+            {/* Estado de carga */}
+            {loading && (
+              <Animated.View
+                style={[
+                  styles.loadingContainer,
+                  { transform: [{ scale: pulseAnim }] },
+                ]}
+              >
+                <View style={styles.loadingCircle}>
+                  <ScanLine size={40} color="#10b981" />
+                </View>
+              </Animated.View>
+            )}
+          </View>
+        </View>
+
+        {/* Footer con ayuda */}
+        <View style={styles.footer}>
+          <View style={styles.helpCard}>
+            <View style={styles.helpIcon}>
+              <CheckCircle size={20} color="#10b981" />
+            </View>
+            <View style={styles.helpContent}>
+              <Text style={styles.helpTitle}>Consejos</Text>
+              <Text style={styles.helpText}>
+                • Mantén el QR centrado en el marco{"\n"}• Evita movimientos
+                bruscos{"\n"}• Verifica que el código esté bien iluminado
+              </Text>
+            </View>
+          </View>
+
+          {/* Indicador de estado */}
+          <View style={styles.statusBar}>
+            <View
+              style={[styles.statusDot, loading && styles.statusDotActive]}
+            />
+            <Text style={styles.statusText}>
+              {loading ? "Procesando código QR..." : "Esperando código QR"}
+            </Text>
+          </View>
+        </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const styleSheet = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#000",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  topInstructions: {
+    alignItems: "center",
+    paddingTop: 100,
+    paddingHorizontal: 20,
+  },
+  instructionBadge: {
+    backgroundColor: "rgba(16, 185, 129, 0.2)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.5)",
+    marginBottom: 16,
+  },
+  instructionBadgeText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  instructionTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  instructionSubtitle: {
+    fontSize: 15,
+    color: "rgba(255, 255, 255, 0.7)",
+    textAlign: "center",
+  },
+  scanArea: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scanFrame: {
+    width: 280,
+    height: 280,
+    position: "relative",
+    overflow: "hidden",
+  },
+  corner: {
+    position: "absolute",
+    width: 40,
+    height: 40,
+    borderColor: "#10b981",
+  },
+  cornerTopLeft: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+    borderTopLeftRadius: 8,
+  },
+  cornerTopRight: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 4,
+    borderRightWidth: 4,
+    borderTopRightRadius: 8,
+  },
+  cornerBottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+    borderBottomLeftRadius: 8,
+  },
+  cornerBottomRight: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: 4,
+    borderRightWidth: 4,
+    borderBottomRightRadius: 8,
+  },
+  scanLine: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    height: 3,
+    backgroundColor: "#10b981",
+    shadowColor: "#10b981",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    borderRadius: 2,
+  },
+  loadingContainer: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginLeft: -40,
+    marginTop: -40,
+  },
+  loadingCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(16, 185, 129, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#10b981",
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  helpCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: "row",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  helpIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(16, 185, 129, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  helpContent: {
+    flex: 1,
+  },
+  helpTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 6,
+  },
+  helpText: {
+    fontSize: 13,
+    color: "#6b7280",
+    lineHeight: 18,
+  },
+  statusBar: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    rowGap: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
-  camStyle: {
-    position: "absolute",
-    width: 300,
-    height: 300,
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#6b7280",
+    marginRight: 8,
+  },
+  statusDotActive: {
+    backgroundColor: "#10b981",
+  },
+  statusText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#fff",
   },
 });

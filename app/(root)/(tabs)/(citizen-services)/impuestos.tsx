@@ -8,7 +8,6 @@ const Impuestos = () => {
 
   const handleConsultar = () => {
     // Aquí irá la lógica para consultar impuestos
-    console.log("Consultando impuestos para RFC:", rfc);
   };
 
   return (
