@@ -9,7 +9,8 @@ export default function Layout() {
       <Stack.Screen name="payServices" options={{ headerShown: false }} />
       <Stack.Screen name="balance" options={{ headerShown: false }} />
       <Stack.Screen name="consumption" options={{ headerShown: false }} />
-      <Stack.Screen name="tip" options={{ headerShown: false }} />
+      <Stack.Screen name="send-tip" options={{ headerShown: false }} />
+      <Stack.Screen name="recieve-tip" options={{ headerShown: false }} />
     </Stack>
   );
 }
