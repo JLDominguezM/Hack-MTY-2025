@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  Wallet,
-  TrendingUp,
-  Receipt,
-  ArrowLeftRight,
-  ChevronDown,
-  Leaf,
-} from "lucide-react-native";
+import { ChevronDown, Leaf } from "lucide-react-native";
 import {
   ActivityIndicator,
   Image,

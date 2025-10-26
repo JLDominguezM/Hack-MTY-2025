@@ -177,6 +177,16 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
               </Text>
             </Pressable>
 
+            <Pressable
+              onPress={() => router.push("/(root)/(tabs)/citizen-services")}
+              className="w-full py-4 rounded-xl shadow-md active:scale-[0.98] transition-transform mb-4 flex flex-row items-center justify-center gap-2 bg-Alert"
+            >
+              <Text className="text-2xl">🏛️</Text>
+              <Text className="text-lg text-white font-semibold">
+                Servicios Ciudadanos
+              </Text>
+            </Pressable>
+
             <View className="gap-4">
               {mockServices.map((service) => (
                 <ServiceCard
