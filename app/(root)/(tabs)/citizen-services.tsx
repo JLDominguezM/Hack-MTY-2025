@@ -1,6 +1,7 @@
 import CustomHeader from "@/components/CustomHeader";
 import { useRouter } from "expo-router";
-import { View, Text, SafeAreaView, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, Pressable } from "react-native";
 
 interface ServiceButton {
   id: string;
