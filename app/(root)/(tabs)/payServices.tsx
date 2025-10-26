@@ -11,7 +11,7 @@ import {
   SafeAreaView,
   Alert,
 } from "react-native";
-import { useBalanceStore } from "./balance";
+import { useBalanceStore } from "../../../components/Balance";
 import { useRouter } from "expo-router";
 
 const mockServices: Service[] = [
@@ -111,8 +111,6 @@ function PaymentServicesView({ onNavigate }: PaymentServicesViewProps = {}) {
       );
       return;
     }
-
-    console.log(`Simulating payment of $${selectedTotal.toFixed(2)} MN...`);
 
     decreaseBalance(selectedTotal);
 

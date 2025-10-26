@@ -13,7 +13,7 @@ import {
 import { ArrowLeft, QrCode } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { useBalanceStore } from "./balance";
+import { useBalanceStore } from "@/components/Balance";
 import CustomHeader from "@/components/CustomHeader";
 import { Button } from "@react-navigation/elements";
 
